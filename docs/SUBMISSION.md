@@ -1,0 +1,59 @@
+# Clique — community-funded prediction markets
+
+**One sentence:** Clique lets a community give a prediction market its first liquidity, with a funding target, a deadline, signed settlement terms, and a clear launch-or-refund journey.
+
+**Live app:** https://clique-markets.tinyether2.chatgpt.site
+
+**Public source:** https://github.com/hoymick/clique
+
+**Judge guide and walkthrough:** https://clique-markets.tinyether2.chatgpt.site/submission/
+
+## The problem
+
+A community can have a useful question and interested participants but no single person willing to provide all the starting liquidity. Clique collects commitments before trading begins. If a viable vault reaches its minimum by its funding deadline, anyone can launch the market; otherwise, backers can reclaim eligible commitments under the underlying protocol's rules.
+
+## Why PREDICT
+
+Commitment vaults are the core of the product. Clique calls PREDICT's initialize-vault, commit, launch, LP-claim and refund instructions. The initial YES/NO commitment ratio determines the market's opening price. On launch the committed pot becomes pm-AMM liquidity; backers become liquidity providers. Reimplementing this with a generic constant-product pool would require rebuilding both the funding lifecycle and outcome-token market mechanics.
+
+## What we built
+
+- Searchable, filterable community proposal discovery and personal commitment tracking.
+- Explicitly separate browser-local demo and live Solana devnet datasets.
+- Browser test-wallet connection, mUSDC faucet, balances and transaction Explorer receipts.
+- A review step before commitments.
+- Funding deadlines, minimum targets, permissionless launch, LP share claims and eligible refunds.
+- Outcome source, YES condition and NO/missing-data fallback recorded in a creator-signed Memo instruction in the same transaction as vault creation. Readers verify the authority signature and initialize-vault instruction before accepting the memo.
+- Responsive interface using the reference hackathon site's Geist typography and green/purple palette.
+
+## What judges can try
+
+1. Open the app and keep **Demo mode** selected.
+2. Select **Get started** to receive simulated USDC.
+3. Propose a question with an HTTPS outcome source and explicit settlement rules.
+4. Commit toward a small target; inspect the review screen.
+5. Expand **Test the full journey** and close the demo funding window.
+6. Launch the funded proposal and claim LP shares.
+7. Repeat with a target above the committed amount to test refunds.
+8. Switch to **Solana devnet** for the actual SDK integration. No sample activity is copied into this dataset.
+
+## Verification and current limit
+
+Domain tests, rules-validation tests, TypeScript checks and a maximum-size signed transaction serialization check are included. The demo journey has been exercised in a browser.
+
+**Live devnet transaction verification is pending test-SOL funding.** The PREDICT faucet returned mUSDC with zero SOL; the public RPC airdrop returned 410; the inspected proof-of-work faucets had no funded eligible pool. No simulated number is reported as onchain traction. The integration script accepts an explicit test key path and writes public transaction receipts only after all checks pass.
+
+The browser walkthrough video is labelled as a **simulation**. It demonstrates the product flow, not completed devnet transactions.
+
+## Known limits
+
+- Creator-controlled resolution: signed terms make the original rules inspectable but do not enforce honest resolution or add an oracle/dispute mechanism.
+- Launch is permissionless but manually triggered; no unattended keeper is included.
+- Test wallets are devnet-only and stored in the browser. No mainnet custody or mainnet trading is offered.
+- The current scope ends at LP claiming; no in-app trading or LP-withdrawal screen is provided.
+- LP value can fall; capital committed to a launched market is not guaranteed to be recoverable at its initial value.
+- No real-user adoption, volume or fee figures are claimed. This matters particularly for the PREDICT bounty's traction criterion.
+
+## Roadmap
+
+Complete and publish live devnet receipts; add wallet-adapter support, resolution adapters, LP management and an opt-in launch keeper. Validate demand with actual communities before making growth claims.
