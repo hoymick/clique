@@ -57,3 +57,7 @@ The browser walkthrough video is labelled as a **simulation**. It demonstrates t
 ## Roadmap
 
 Complete and publish live devnet receipts; add wallet-adapter support, resolution adapters, LP management and an opt-in launch keeper. Validate demand with actual communities before making growth claims.
+
+## Demo media
+
+The 104-second walkthrough uses captured interface snapshots with captions and an original synthesized ambient soundtrack. All demo-fund scenes are labelled. It is a product walkthrough, not a recording of completed devnet transactions. Captures and render source are included in the Site source; the public repository includes the rendering script and links to the media.

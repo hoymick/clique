@@ -51,7 +51,7 @@ async function main() {
   );
   candidates.sort((a, b) => a.d - b.d || a.amount - b.amount);
   if (!candidates.length)
-    throw new Error("No funded difficulty-3 faucet is available.");
+    throw new Error("No funded eligible difficulty-1-to-3 faucet is available.");
   const target = 80000000;
   let total = await conn.getBalance(payer.publicKey);
   let rounds = 0;

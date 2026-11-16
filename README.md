@@ -72,3 +72,7 @@ Every new Clique vault records an HTTPS outcome source, a YES condition, and a N
 ## License
 
 Application source is MIT licensed. Bundled Geist font files retain their SIL Open Font License in `public/fonts/OFL.txt`. The optional proof-of-work funding helper is a minimal port of the MIT-licensed [Ellipsis Labs faucet CLI](https://github.com/jarry-xiao/proof-of-work-faucet); it uses only explicitly generated test keys.
+
+## Walkthrough media
+
+A 104-second, 1080p product walkthrough is available on the judge page. It uses actual interface captures, captions and original synthesized ambient audio, and explicitly labels simulated activity. To regenerate from the captures, run `python scripts/render-demo.py --font-root /path/to/Geist-TTF-files --work-dir /tmp/clique-video`; Pillow, NumPy and ffmpeg are required. The render is not a claim that live devnet transactions have passed.
