@@ -3558,3 +3558,40 @@ h2 {
     display: none;
   }
 }
+/* Collections and receipts share the same friendly, tactile controls. */
+.header nav {gap:16px}
+.nav-item {white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.nav-how {display:none!important}
+.watch-count {font:800 10px Nunito,sans-serif;background:#e4eeff;border-radius:20px;padding:2px 6px;color:#245ecc}
+.save-question {display:grid;place-items:center;margin-left:auto;width:38px;height:38px;border:1.5px solid #b8d0ee;border-radius:50%;background:#fff;color:#506783;cursor:pointer;flex-shrink:0}
+.save-question.saved {background:#ffe58f;border-color:#082950;color:#082950}
+.save-question.saved svg {fill:#ffe58f}
+.card-top {gap:8px}
+.market-card {transition:transform .2s ease,box-shadow .2s ease;position:relative}
+.market-card:hover {transform:translateY(-4px);box-shadow:0 10px 0 #d5e6fb}
+.market-card:focus-within {border-color:#477af8}
+.collection-note {color:#506783;font-size:14px;max-width:680px;margin:-6px 0 25px}
+.detail-actions {display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.share-box {background:#eaf3ff;border:1.5px solid #bad5f8;border-radius:20px;padding:20px;margin-top:16px;overflow-wrap:anywhere}
+.share-box p {font-size:13px;color:#506783;line-height:1.6}
+.share-box label {display:block;font-size:12px;font-weight:800}
+.share-box input {width:100%;min-width:0;background:#fff;border:1px solid #8bb1e7;border-radius:10px;padding:12px;color:#082950;margin:8px 0 14px;font-size:13px}
+.activity-list {display:grid;gap:12px;max-height:60vh;overflow:auto;margin-top:26px;padding:2px}
+.activity-row {display:flex;align-items:flex-start;gap:13px;border:1.5px solid #d5e6fb;border-radius:18px;padding:18px;background:#f3f8ff}
+.activity-icon {display:grid;place-items:center;border-radius:50%;padding:9px;background:#d4f5e1;color:#14523e;flex-shrink:0}
+.activity-row>div:nth-child(2) {min-width:0;flex:1}
+.activity-row strong {font-size:14px;display:block}
+.activity-title {display:flex;align-items:center;gap:5px;text-align:left;color:#245ecc;background:none;border:0;padding:5px 0;cursor:pointer;font:800 14px Nunito,sans-serif}
+.activity-row small {display:block;color:#506783;font-size:11px}
+.activity-row>a {color:#245ecc;padding:5px;flex-shrink:0}
+.compact-hero {padding-top:32px!important;padding-bottom:32px!important;min-height:0!important}
+.compact-hero .hero-art,.compact-hero .hero-proof,.compact-hero .hero-actions,.compact-hero .hero-copy>p {display:none}
+.compact-hero h1 {font-size:36px;line-height:1.1}
+.compact-hero h1 br {display:none}
+.compact-hero h1 span:before {content:' '}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px solid #477af8;outline-offset:4px}
+@media(min-width:1000px) {.market-card:hover .card-arrow {transform:rotate(5deg);background:#ffe58f;color:#082950}}
+@media(max-width:1000px) {.header nav {gap:12px}.nav-item {font-size:12px}.nav-wrap {gap:16px}.brand {font-size:26px}.wallet-button {padding-left:12px;padding-right:12px}}
+@media(max-width:760px) {.nav-wrap {flex-wrap:wrap;height:auto;padding:12px 0}.header {height:auto}.header nav {order:3;width:100%;justify-content:center;gap:22px;padding-top:10px;border-top:1px solid #b8d0ee}.header-actions {margin-left:auto}.header nav .nav-item {font-size:12px;min-height:40px}.hero {padding-top:38px}.modal-backdrop {padding:12px}.modal,.modal.wide {max-height:calc(100dvh - 24px);overflow-y:auto}.detail-actions .button {flex:1;justify-content:center}.activity-row {padding:13px}}
+@media(max-width:620px) {.header nav {justify-content:flex-start;gap:20px;overflow-x:auto;height:auto;scrollbar-width:none;padding:2px 0 0}.header nav .nav-item {font-size:12px;flex-shrink:0}.header nav::-webkit-scrollbar {display:none}.network {order:3}.header nav {order:4}.market-toolbar {gap:16px}.market-tabs {width:100%;justify-content:space-between;gap:12px;overflow:auto}.market-tabs button {white-space:nowrap;min-height:44px}.topic-chips {overflow-x:auto;flex-wrap:nowrap;max-width:100%;scrollbar-width:none}.topic-chips button {white-space:nowrap;min-height:40px}.market-filters {align-items:flex-start;gap:14px}.market-card {padding:22px}.card-top .status {font-size:10px}.toast {max-width:calc(100vw - 24px);left:12px;right:12px;bottom:16px}.activity-row {gap:9px}.activity-icon {padding:6px}.activity-row strong,.activity-title {font-size:12px}}
+@media(prefers-reduced-motion:reduce) {*,*:before,*:after {animation:none!important;transition:none!important;scroll-behavior:auto!important}}

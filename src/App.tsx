@@ -27,7 +27,11 @@ import {
   Activity,
   Layers,
   Download,
+  Bookmark,
+  Share2,
+  History,
 } from "lucide-react";
+import { readWatch, toggleWatch, watchKey, readActivity, appendActivity, routeFromUrl, marketLink } from "./journal.mjs";
 import { validateRules } from "./rules.mjs";
 import type { Market, Mode, Position, Proposal } from "./types";
 import { loadDemo } from "./data";
@@ -227,13 +231,11 @@ function Modal({
 }
 export default function App() {
   const [demo, setDemo] = useState(loadDemo);
-  const [mode, setMode] = useState<Mode>(() =>
-    new URLSearchParams(location.search).get("mode") === "mainnet"
-      ? "mainnet"
-      : new URLSearchParams(location.search).get("mode") === "demo"
-        ? "demo"
-        : "devnet",
-  );
+  const [mode, setMode] = useState<Mode>(() => routeFromUrl(location.href).mode as Mode);
+  const [watches, setWatches] = useState<Record<Mode,string[]>>(() => ({demo:readWatch(localStorage,'demo'),devnet:readWatch(localStorage,'devnet'),mainnet:readWatch(localStorage,'mainnet')}));
+  const [journal, setJournal] = useState<any[]>(() => readActivity(localStorage));
+  const [linkError, setLinkError] = useState(() => routeFromUrl(location.href).error);
+  const [shareOpen, setShareOpen] = useState(false);
   const chain = chains.forNetwork(mode === "mainnet" ? "mainnet" : "devnet");
   const networkLabel = mode === "mainnet" ? "Solana mainnet" : "Solana devnet";
   const tokenLabel = mode === "devnet" ? "mUSDC" : "USDC";
@@ -243,15 +245,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [chainError, setChainError] = useState("");
   const [now, setNow] = useState(Date.now());
-  const [view, setView] = useState<"discover" | "positions">("discover");
+  const [view, setView] = useState<"discover" | "positions" | "watchlist">("discover");
   const [filter, setFilter] = useState("all");
   const [category, setCategory] = useState("All topics");
   const [search, setSearch] = useState("");
   const [vaultAddress, setVaultAddress] = useState("");
   const [lookupError, setLookupError] = useState("");
   const [sort, setSort] = useState("trending");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [modal, setModal] = useState<"wallet" | "create" | "how" | null>(null);
+  const [selected, setSelected] = useState<string | null>(() => routeFromUrl(location.href).vault);
+  const [modal, setModal] = useState<"wallet" | "create" | "how" | "activity" | null>(null);
   const [walletAddress, setWalletAddress] = useState("");
   const [liveBalance, setLiveBalance] = useState({ usdc: 0, sol: 0 });
   const [positions, setPositions] = useState<Record<string, Position>>({});
@@ -290,18 +292,36 @@ export default function App() {
       : positions[market.id]
     : null;
   useEffect(() => {
-    const id = new URLSearchParams(location.search).get("vault");
-    if (id) {
-      setMode(
-        id.startsWith("sample-") || id.startsWith("demo-")
-          ? "demo"
-          : new URLSearchParams(location.search).get("mode") === "mainnet"
-            ? "mainnet"
-            : "devnet",
-      );
-      setSelected(id);
-    }
-  }, []);
+    const u = new URL(location.href);u.searchParams.set('mode',mode);
+    if(selected) u.searchParams.set('vault',selected); else u.searchParams.delete('vault');
+    history.replaceState(null,'',u);
+    setShareOpen(false);
+  }, [selected,mode]);
+  useEffect(() => {
+    const handle = () => {
+      if (busy) return;
+      const r = routeFromUrl(location.href);
+      if(r.mode !== mode) changeMode(r.mode as Mode);
+      setSelected(r.vault);setLinkError(r.error);
+    };
+    window.addEventListener('popstate',handle);
+    return () => window.removeEventListener('popstate',handle);
+  }, [mode,busy]);
+  function watch(id:string) {
+    const next = toggleWatch(watches[mode],id);
+    try {localStorage.setItem(watchKey(mode),JSON.stringify(next));}
+    catch {tell('Your browser could not save this watchlist.');return;}
+    setWatches(v=>({...v,[mode]:next}));
+    tell(next.includes(id)?'Question saved to your watchlist.':'Question removed from your watchlist.');
+  }
+  function record(action:string, id:string, title:string, signature?:string, amount?:number, choice?:string) {
+    const item = {mode,wallet:mode==='demo'?'demo':walletAddress,marketId:id,title,action,signature,amount,side:choice,at:Date.now()};
+    setJournal(rows=>{
+      const next = appendActivity(rows,item);
+      try {localStorage.setItem('clique-activity-v1',JSON.stringify(next));} catch {}
+      return next;
+    });
+  }
   useEffect(() => {
     try {
       localStorage.setItem("clique-demo-v1", JSON.stringify(demo));
@@ -372,6 +392,7 @@ export default function App() {
       if (modeRef.current !== requestedMode) return;
       setLiveMarkets(next);
       setChainError("");
+      setLinkError(selected && !next.some(m=>m.id===selected) ? 'This question was not found on this network. It may be a browser-only demo proposal, or the link may use a different network.' : '');
       if (walletAddress) {
         const results = await Promise.allSettled([
           chain.balances(),
@@ -409,6 +430,7 @@ export default function App() {
     setToast(null);
     setLookupError("");
     setVaultAddress("");
+    setLinkError("");
     modeRef.current = next;
     setSelected(null);
     setModal(null);
@@ -421,7 +443,10 @@ export default function App() {
     setFilter("all");
   }
   function openMarket(m: Market) {
+    const u = new URL(marketLink(location.origin,mode,m.id));
+    history.pushState(null,"",u);
     setSelected(m.id);
+    setLinkError("");
     setAmount("100");
     setSide("yes");
     setReview(false);
@@ -524,6 +549,7 @@ export default function App() {
         }));
       } else {
         sig = await chain.commit(market.id, side, Number(amount));
+        record("Committed",market.id,market.title,sig,Number(amount),side);
         const results = await Promise.allSettled([
           chain.balances(),
           chain.fetchPosition(market.id),
@@ -536,6 +562,7 @@ export default function App() {
         }
         await refreshLive(true);
       }
+      if(mode === "demo") record("Committed",market.id,market.title,undefined,Number(amount),side);
       setReceipt({
         text: `${money(Number(amount), 6)} ${mode === "demo" ? "demo USDC" : tokenLabel} committed. You’re part of this clique.`,
         signature: sig,
@@ -608,6 +635,7 @@ export default function App() {
           sig = r.signature;
         } else if (action === "refund") sig = await chain.refund(market.id);
         else sig = await chain.claim(market.id, market.marketAddress!);
+        record(action === "launch"?"Launched":action === "refund"?"Refunded":"Claimed LP",market.id,market.title,sig);
         await refreshLive();
         if (walletAddress)
           try {
@@ -616,6 +644,7 @@ export default function App() {
             setChainError(chain.readableError(e));
           }
       }
+      if(mode === "demo") record(action === "launch"?"Launched":action === "refund"?"Refunded":"Claimed LP",market.id,market.title);
       tell(
         action === "launch"
           ? "Market launched. Community liquidity is now active."
@@ -695,8 +724,10 @@ export default function App() {
         const r = await chain.createProposal(form);
         id = r.vaultPda;
         sig = r.signature;
+        record("Proposed",id,form.title.trim(),sig);
         await refreshLive();
       }
+      if(mode === "demo") record("Proposed",id,form.title.trim());
       setModal(null);
       setSelected(id);
       setFilter("all");
@@ -746,6 +777,7 @@ export default function App() {
       const p = mode === "demo" ? m.positions?.you : positions[m.id];
       return (
         (view !== "positions" || !!p) &&
+        (view !== "watchlist" || watches[mode].includes(m.id)) &&
         (filter === "all" ||
           (filter === "funding" && ["funding", "ready"].includes(s)) ||
           (filter === "live" && s === "live") ||
@@ -811,7 +843,9 @@ export default function App() {
             >
               My commitments
             </button>
-            <button className="nav-item" onClick={() => setModal("how")}>
+            <button className={view === 'watchlist'?'nav-item active':'nav-item'} onClick={()=>{setView('watchlist');setSearch('');setCategory('All topics');setFilter('all');document.getElementById('markets')?.scrollIntoView({behavior:'smooth'});}}><Bookmark size={14}/> Watchlist <span className="watch-count">{watches[mode].length}</span></button>
+            <button className="nav-item" onClick={()=>setModal('activity')}><History size={14}/> Activity</button>
+            <button className="nav-item nav-how" onClick={() => setModal("how")}>
               How it works <ArrowUpRight size={13} />
             </button>
           </nav>
@@ -851,7 +885,7 @@ export default function App() {
         </div>
       </header>
       <main>
-        <section className="hero container">
+        <section className={"hero container"+(view!=="discover"?" compact-hero":"")}>
           <div className="hero-copy">
             <div className="eyebrow">
               <span className="eyebrow-dash" />
@@ -932,7 +966,7 @@ export default function App() {
               <h2>
                 {view === "positions"
                   ? "Your conviction, at work."
-                  : "A question today. A market tomorrow."}
+                  : view === "watchlist" ? "Keep your questions close." : "A question today. A market tomorrow."}
               </h2>
             </div>
             <span className="section-note">
@@ -946,6 +980,9 @@ export default function App() {
               )}
             </span>
           </div>
+          {view === 'watchlist' && <p className="collection-note">Saved on this browser, separately for each network. Save a question with its bookmark button; this does not commit funds.</p>}
+          {linkError && <div className="error-banner" role="alert">{linkError}<button onClick={()=>{setSelected(null);setLinkError('');}}>Dismiss</button></div>}
+          {selected && !market && !loading && !chainError && mode === 'demo' && <div className="error-banner" role="alert">This demo proposal is only available in the browser where it was created. Ask for a devnet market link.<button onClick={()=>setSelected(null)}>Dismiss</button></div>}
           <div className="market-toolbar">
             <div
               className="market-tabs"
@@ -1117,6 +1154,7 @@ export default function App() {
                       >
                         <TopicIcon category={m.category} />
                       </div>
+                      <button className={"save-question "+(watches[mode].includes(m.id)?"saved":"")} aria-label={(watches[mode].includes(m.id)?"Unsave ":"Save ")+m.title} aria-pressed={watches[mode].includes(m.id)} onClick={()=>watch(m.id)}><Bookmark size={18}/></button>
                       <span className={"status status-" + s}>
                         <span />
                         {stateLabels[s]}
@@ -1197,14 +1235,14 @@ export default function App() {
               <div className="empty-state">
                 <Orbit size={32} />
                 <h3>
-                  {view === "positions"
+                  {view === "watchlist" ? "Your next conviction is out there." : view === "positions"
                     ? "Your clique starts with a commitment."
                     : search
                       ? "No markets match your search."
                       : "There’s room for your question."}
                 </h3>
                 <p>
-                  {view === "positions"
+                  {view === "watchlist" ? "Bookmark a question in Discover and find it here. Saved mainnet questions must also be available among your loaded vaults." : view === "positions"
                     ? "Back a funding market and follow its journey here."
                     : mode !== "demo"
                       ? mode === "mainnet"
@@ -1215,7 +1253,7 @@ export default function App() {
                 <button
                   className="button secondary"
                   onClick={() => {
-                    if (view === "positions") {
+                    if (view === "positions" || view === "watchlist") {
                       setView("discover");
                       setFilter("all");
                     } else if (search) {
@@ -1225,7 +1263,7 @@ export default function App() {
                     } else setModal("create");
                   }}
                 >
-                  {view === "positions"
+                  {view === "positions" || view === "watchlist"
                     ? "Explore markets"
                     : search
                       ? "Clear filters"
@@ -1365,6 +1403,14 @@ export default function App() {
           </button>
         </div>
       )}
+      {modal === 'activity' && <Modal wide label="Your activity" onClose={()=>setModal(null)}>
+        <span className="eyebrow small-eyebrow">YOUR CLIQUE JOURNEY</span><h2>Your activity.</h2>
+        <p className="modal-description">{mode === 'demo'?'Simulated actions from this browser.':`Confirmed actions made here with your connected wallet on ${networkLabel}.`} Up to 200 recent records stay in this browser; this is not a complete onchain history.</p>
+        {mode !== 'demo' && !walletAddress ? <div className="empty-state"><Wallet/><h3>Connect your wallet to see its activity.</h3><button className="button primary" onClick={()=>setModal('wallet')}>Connect wallet</button></div> : <div className="activity-list">
+          {journal.filter(r=>r.mode===mode && r.wallet===(mode==='demo'?'demo':walletAddress)).length === 0 && <div className="empty-state"><History/><h3>Your story starts here.</h3><p>Confirmed proposals, commitments, launches, LP claims and refunds appear here as you use Clique.</p></div>}
+          {journal.filter(r=>r.mode===mode && r.wallet===(mode==='demo'?'demo':walletAddress)).map((r,i)=><article className="activity-row" key={r.signature || r.at+'-'+i}><div className="activity-icon"><CheckCircle2 size={19}/></div><div><strong>{r.action}{r.amount?` · ${money(r.amount,6)} ${mode==='demo'?'demo USDC':tokenLabel}${r.side?' on '+r.side.toUpperCase():''}`:''}</strong><button className="activity-title" onClick={()=>{setModal(null);setSelected(r.marketId);setView('discover');}}>{r.title}<ArrowUpRight size={13}/></button><small>{new Date(r.at).toLocaleString()} · {mode==='demo'?'Simulated':networkLabel+' · Confirmed'}</small></div>{r.signature && <a aria-label={'View '+r.action+' transaction'} href={chain.explorer(r.signature,true)} target="_blank" rel="noreferrer"><ExternalLink size={18}/></a>}</article>)}
+        </div>}
+      </Modal>}
       {modal === "wallet" && (
         <Modal
           label="Your Clique wallet"
@@ -1975,26 +2021,14 @@ export default function App() {
                   </a>
                 )}
               </div>
-              <button
-                className="text-button"
-                onClick={() => {
-                  if (market.demo && market.id.startsWith("demo-")) {
-                    tell(
-                      "This demo proposal is saved only in this browser. Create a devnet proposal to share it with others.",
-                    );
-                    return;
-                  }
-                  const u = new URL(location.href);
-                  u.searchParams.set("vault", market.id);
-                  u.searchParams.set("mode", mode);
-                  navigator.clipboard
-                    .writeText(u.toString())
-                    .then(() => tell("Market link copied."))
-                    .catch(() => tell("Could not copy this link."));
-                }}
-              >
-                Share this question <Copy size={13} />
-              </button>
+              <div className="detail-actions">
+                <button className="button secondary" onClick={()=>watch(market.id)} aria-pressed={watches[mode].includes(market.id)}><Bookmark size={16}/>{watches[mode].includes(market.id)?'Saved question':'Save question'}</button>
+                <button className="button secondary" onClick={()=>setShareOpen(v=>!v)}><Share2 size={16}/> Share question</button>
+              </div>
+              {shareOpen && <div className="share-box">
+                <strong>Bring your clique.</strong>
+                {market.id.startsWith('demo-') ? <p>This custom demo lives only in this browser. Propose on devnet to share a question others can fund.</p> : <><p>This link opens the question on {mode === 'demo'?'Demo mode':networkLabel}. Sharing does not connect a wallet or commit funds.</p><label>Market link<input aria-label="Market share link" readOnly value={marketLink(location.origin,mode,market.id)} onFocus={e=>e.currentTarget.select()}/></label><button className="button primary" onClick={async()=>{try {await navigator.clipboard.writeText(marketLink(location.origin,mode,market.id));tell('Market link copied.');}catch {tell('Select the market link and copy it manually.');}}}><Copy size={14}/> Copy link</button></>}
+              </div>}
             </div>
             <aside className="commit-panel">
               {receipt ? (

@@ -172,3 +172,13 @@ test("mainnet saved-vault reads avoid paid broad indexing and reject missing sha
     delete globalThis.localStorage;
   }
 });
+
+test('devnet shared links directly check an address absent from the indexed list', async()=>{
+  const originalFetch=globalThis.fetch;const calls=[];
+  globalThis.fetch=async(_url,options)=>{
+    const req=JSON.parse(options.body);calls.push(req.method);
+    return new Response(JSON.stringify({jsonrpc:'2.0',id:req.id,result:req.method==='getProgramAccounts'?[]:{context:{slot:1},value:null}}),{headers:{'content-type':'application/json'}});
+  };
+  try {await assert.rejects(dev.fetchVaults(Keypair.generate().publicKey.toBase58()),/not a Clique devnet/);assert.deepEqual(calls,['getProgramAccounts','getAccountInfo']);}
+  finally {globalThis.fetch=originalFetch;}
+});

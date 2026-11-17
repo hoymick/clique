@@ -274,7 +274,16 @@ function createChain(network: Network) {
       );
       all = all.filter((row) => row !== null);
       if (extraAddress) rememberVault(extraAddress);
-    } else all = await reader.fetchAllVaults();
+    } else {
+      all = await reader.fetchAllVaults();
+      if (extraAddress && !all.some(row=>row.publicKey.toBase58() === extraAddress)) {
+        const publicKey = new PublicKey(extraAddress);
+        const account = await reader.fetchVault(publicKey);
+        if (!account || !account.collateralMint.equals(MINT) || !decode(account.name).startsWith('CLQ: '))
+          throw new Error('This address is not a Clique devnet mUSDC vault. Check the network and vault address.');
+        all = [{publicKey,account},...all];
+      }
+    }
     return all
       .filter(
         (x) =>
