@@ -23,7 +23,8 @@ export function installHttpConfirmation(connection, timeoutMs = 45000) {
           strategy.lastValidBlockHeight
       )
         throw new Error(
-          "Transaction expired before confirmation. Inspect its signature before retrying.",
+          "Transaction expired before confirmation. Inspect its signature before retrying: " +
+            signature,
         );
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }

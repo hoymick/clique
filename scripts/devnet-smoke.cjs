@@ -8,6 +8,7 @@ const {
 } = require("@solana/web3.js");
 const { AnchorProvider, Wallet } = require("@anchor-lang/core");
 const { PmAmmClient } = require("@pm-amm/sdk");
+const { getAssociatedTokenAddressSync } = require("@solana/spl-token");
 const fs = require("node:fs");
 async function main() {
   const keyPath = process.argv[2];
@@ -19,6 +20,8 @@ async function main() {
   const conn = new Connection("https://api.devnet.solana.com", {
     commitment: "confirmed",
     disableRetryOnRateLimit: true,
+    fetch: (url, options) =>
+      fetch(url, { ...options, signal: AbortSignal.timeout(20000) }),
   });
   const { installHttpConfirmation } = await import("../src/confirmation.mjs");
   installHttpConfirmation(conn);
@@ -29,23 +32,53 @@ async function main() {
   );
   console.log("Checking devnet RPC");
   await conn.getLatestBlockhash();
-  console.log("Funding ephemeral test wallet");
-  const fr = await fetch("https://pm-amm-devnet.vercel.app/api/faucet", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ wallet: kp.publicKey.toBase58(), role: "player" }),
-    signal: AbortSignal.timeout(30000),
-  });
-  const f = await fr.json();
-  if (!fr.ok || !f.ok) throw new Error(f.error || "Faucet unavailable");
-  await conn.confirmTransaction(f.signature, "confirmed");
-  console.log(
-    "Faucet reported test SOL:",
-    f.sol,
-    "; balance:",
-    await conn.getBalance(kp.publicKey),
+  console.log("Test wallet:", kp.publicKey.toBase58());
+  const tokenAddress = getAssociatedTokenAddressSync(
+    client.collateralMint,
+    kp.publicKey,
   );
-  if ((await conn.getBalance(kp.publicKey)) < 60000000)
+  const tokenAccount = await conn.getAccountInfo(tokenAddress);
+  const existingUsdc = tokenAccount
+    ? Number((await conn.getTokenAccountBalance(tokenAddress)).value.amount) /
+      1e6
+    : 0;
+  // Builder funding is needed to create and launch markets. Player drips are
+  // deliberately smaller and cannot cover this complete lifecycle.
+  if (existingUsdc < 60) {
+    console.log("Requesting builder test funds");
+    const fr = await fetch("https://pm-amm-devnet.vercel.app/api/faucet", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ wallet: kp.publicKey.toBase58() }),
+      signal: AbortSignal.timeout(30000),
+    });
+    const f = await fr.json();
+    if (!fr.ok || !f.ok) throw new Error(f.error || "Faucet unavailable");
+    const confirmation = await conn.confirmTransaction(
+      f.signature,
+      "confirmed",
+    );
+    if (confirmation.value.err)
+      throw new Error(
+        "Faucet transaction failed: " + JSON.stringify(confirmation.value.err),
+      );
+    console.log(
+      "Faucet reported test SOL:",
+      f.sol,
+      "; balance:",
+      await conn.getBalance(kp.publicKey),
+    );
+  } else console.log("Using existing test mUSDC; no repeat faucet request.");
+  const lamports = await conn.getBalance(kp.publicKey);
+  fs.writeFileSync("DEVNET-FUNDING-STATUS.json", JSON.stringify({
+    network: "solana-devnet",
+    checkedAt: new Date().toISOString(),
+    wallet: kp.publicKey.toBase58(),
+    lamports,
+    sol: lamports / 1e9,
+    persistentSigner: !!keyPath,
+  }, null, 2) + "\n");
+  if (lamports < 60000000)
     throw new Error(
       "Fund the test wallet with at least 0.06 devnet SOL before running the complete flow: " +
         kp.publicKey.toBase58(),

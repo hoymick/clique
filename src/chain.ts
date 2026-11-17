@@ -116,15 +116,23 @@ export async function faucet() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       wallet: keypair.publicKey.toBase58(),
-      role: "player",
     }),
     signal: AbortSignal.timeout(30000),
   });
   const b = await r.json();
   if (!r.ok || !b.ok)
     throw new Error(b.error || "The faucet is unavailable. Try again later.");
-  if (b.signature)
-    await connection.confirmTransaction(b.signature, "confirmed");
+  if (b.signature) {
+    const confirmation = await connection.confirmTransaction(
+      b.signature,
+      "confirmed",
+    );
+    if (confirmation.value.err)
+      throw new Error(
+        "Test-fund transaction failed. Check its receipt: " +
+          explorer(b.signature, true),
+      );
+  }
   return { signature: b.signature, amount: b.amount };
 }
 const decode = (n: number[]) =>
