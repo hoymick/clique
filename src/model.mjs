@@ -37,7 +37,7 @@ export function demoCommit(m, owner, side, amount, now = Date.now()) {
   if (position.claimed)
     throw new Error("This position has already been claimed.");
   positions[owner] = { ...position, [side]: position[side] + amount };
-  return { ...m, [side]: m[side] + amount, backers: m.backers + 1, positions };
+  return { ...m, [side]: m[side] + amount, backers: m.backers + (m.positions?.[owner] ? 0 : 1), positions };
 }
 export function demoRefund(m, owner, now = Date.now()) {
   if (vaultState(m, now) !== "refundable")
@@ -45,9 +45,11 @@ export function demoRefund(m, owner, now = Date.now()) {
   const p = m.positions?.[owner];
   if (!p || p.claimed || p.yes + p.no <= 0)
     throw new Error("No refundable commitment.");
-  // Protocol vault totals record historic commitments. Position is marked claimed.
+  // Refunds reduce the vault totals, matching the observed devnet account state.
   return {
     ...m,
+    yes: m.yes - p.yes,
+    no: m.no - p.no,
     positions: { ...m.positions, [owner]: { ...p, claimed: true } },
   };
 }

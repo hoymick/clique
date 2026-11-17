@@ -1,21 +1,39 @@
 # Final verification — 17 November 2026
 
-## Passed
-- 18 automated tests, including HTTP transaction-confirmation success/failure/expiry/timeout.
+The complete Clique funding lifecycle passed on **Solana devnet**. All transaction receipts confirmed without errors. These are developer integration transactions using free test tokens, not product traction.
+
+## Verified onchain
+
+| Check | Result |
+| --- | --- |
+| Create two vaults with signed rules | Confirmed |
+| Commit YES and NO | 25 mUSDC on each side of the funded vault |
+| Commit to the underfunded vault | 10 mUSDC |
+| Launch after the funding deadline | Funded vault launched |
+| Claim LP shares | Positive onchain LP share balance |
+| Refund underfunded vault | Position marked claimed; 10 mUSDC returned |
+| Ending test wallet balance | 950 mUSDC, from 1,000 initially |
+| Settlement terms | Creator signer, initialization instruction and signed memo verified |
+
+## Public receipts
+
+[Machine-readable verification report](../DEVNET-VERIFICATION.json). The report includes every signature, account address, timestamp and postcheck.
+
+- [Create funded vault](https://explorer.solana.com/tx/5PaL687fUAcKS6xYRH3ztxDP9JCvpbyt13coGnEzHKiDyp7mXroUazi6knu1NwW8mrJtF3Fd9B8VrGSet5XFx7Bn?cluster=devnet)
+- [Create underfunded vault](https://explorer.solana.com/tx/MvXfiRJ93Sc5NecSyzFo1wEqtKTBGu9r5KaQTkhJZn3r21Gnd5LdgQfHmvSRV6JE7aoAYm12erRsiM75Ymo9BQH?cluster=devnet)
+- [Launch](https://explorer.solana.com/tx/5uyRohEpj91i7n2qHntzwSbqUWrLBbLQYuLGVAAzLaBWLSvZt3VewHNmvssecPWoLSBRD5SVTLaSWvAXA2fz1hBT?cluster=devnet)
+- [Claim LP shares](https://explorer.solana.com/tx/2MWuMyULWeMruZcyHVuJZfkua8YzivV9ARAHEbTVf3q4shnY9S3oSV6gsNmninTzsGHDuwg5XLbCzMmn8fYpqwow?cluster=devnet)
+- [Refund](https://explorer.solana.com/tx/25MXVk6LZpgc7ABgQcDwsKAyAHTQ1Xj9GJtWXE1kDHRguG5wXTHJL3qjLqcBMTJqs9Liio4Hw5NKcg5YBLQ6xDiE?cluster=devnet)
+
+## Automated and product checks
+
+- 18 automated tests, including confirmation success, failure, expiry and timeout.
 - Maximum signed question-and-rules transaction: 1,003 bytes (Solana limit: 1,232).
 - TypeScript and production build.
 - Devnet is the default and only real transaction network.
-- Browser-local simulation remains isolated and labelled.
-- UUID transitive dependency patched; nine remaining audit nodes reviewed in DEPENDENCY-REVIEW.md.
+- Browser simulation stays isolated and explicitly labelled.
+- Nine transitive dependency audit nodes remain documented in DEPENDENCY-REVIEW.md.
 
-## Live test result
-The integration script was corrected to request the official **builder** faucet allocation, rather than the smaller player allocation. One builder funding attempt supplied mUSDC but returned zero SOL. The script stopped before creating any vault. There are no successful application lifecycle receipts from this test.
+## Submission status
 
-Public devnet-only test wallet: `5tDm6m8YHPj3ywNE181b8pTBgeJS7evNbNttbv3tXYSG`.
-
-Minimum script prerequisite: 0.06 devnet SOL; 0.1 devnet SOL allows headroom. These are free test tokens, not real SOL. Request them from https://faucet.solana.com with **Devnet** selected. Do not buy SOL or send mainnet assets.
-
-To rerun, supply the existing test-only signer file as the first argument to `node scripts/devnet-smoke.cjs`. The script reuses sufficient existing test mUSDC, avoiding repeated faucet claims. It writes DEVNET-VERIFICATION.json only after all six application checks complete successfully. Never commit or upload a private key as evidence.
-
-## Status
-The app and submission copy are prepared. The remaining external prerequisite is a funded devnet signing wallet. Full live verification and an actual hackathon submission are not complete.
+The app, verified devnet receipts, labelled walkthrough and submission text are prepared. An actual hackathon submission has not been made. External-wallet support, trading screens, LP withdrawals and an oracle/dispute system remain outside this build’s stated scope.

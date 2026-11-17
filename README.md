@@ -58,7 +58,7 @@ Confirmation uses HTTPS signature polling instead of WebSockets. No private RPC 
 - TypeScript and production build checked.
 - Eighteen tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision, UTF-8 question length, and transaction confirmation success, failure, expiry and timeout.
 - Browser demo exercised through creation, commitment review, launch, LP claim and refund.
-- Live devnet transaction verification **not completed**: the mUSDC faucet supplied zero SOL and the public RPC returned `410 Gone` for `requestAirdrop`, directing callers to the official SOL faucet. The inspected eligible proof-of-work pools were also unfunded. Creating a vault requires test SOL. Do not represent the demo receipts as onchain activity.
+- **Live devnet lifecycle verified on 17 November 2026:** creation, YES and NO commitments, permissionless launch, LP claim and refund all confirmed successfully. [Public receipts](DEVNET-VERIFICATION.json) include postchecks for LP shares, returned funds and creator-signed settlement rules. These are developer integration transactions, not user traction.
 - `scripts/devnet-smoke.cjs` uses a generated, ephemeral test key and attempts a create / commit / launch / LP-claim / refund flow. It never reads a user's wallet. Pass a funded test-only key path as the first argument; successful results write only public addresses and transaction signatures to `DEVNET-VERIFICATION.json`.
 
 Reference: https://predict-pm-amm.dev/hackathon.md and https://predict-pm-amm.dev/llms.txt.
@@ -75,7 +75,7 @@ Application source is MIT licensed. Bundled Geist font files retain their SIL Op
 
 ## Walkthrough media
 
-A 104-second, 1080p product walkthrough is available on the judge page. It uses actual interface captures, captions and original synthesized ambient audio, and explicitly labels simulated activity. To regenerate from the captures, run `python scripts/render-demo.py --font-root /path/to/Geist-TTF-files --work-dir /tmp/clique-video`; Pillow, NumPy and ffmpeg are required. The render is not a claim that live devnet transactions have passed.
+A 104-second, 1080p product walkthrough is available on the judge page. It uses actual interface captures, captions and original synthesized ambient audio, and explicitly labels simulated activity. To regenerate from the captures, run `python scripts/render-demo.py --font-root /path/to/Geist-TTF-files --work-dir /tmp/clique-video`; Pillow, NumPy and ffmpeg are required. The interface walkthrough is simulated; separately verified live devnet transactions are linked from the judge guide.
 
 ## Dependency review — 17 November 2026
 

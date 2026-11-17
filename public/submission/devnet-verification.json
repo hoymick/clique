@@ -1,0 +1,44 @@
+{
+  "network": "solana-devnet",
+  "checkedAt": "2026-11-17T13:04:40.475Z",
+  "publicTestWallet": "5tDm6m8YHPj3ywNE181b8pTBgeJS7evNbNttbv3tXYSG",
+  "fundedVault": "4yVYY6ogdcmLhpy7D3Gfsb6Jq9i7zWU3BxbRoDJA3PfS",
+  "refundedVault": "3bHwi9VJMU8pSKcSofT6ysxotbuorepswsjKYyoMB3ZW",
+  "market": "GrnoiASEawu2SG7YC7rTXynznXekxdHVf9NWAJvsjm1X",
+  "signatures": {
+    "createFunded": "5PaL687fUAcKS6xYRH3ztxDP9JCvpbyt13coGnEzHKiDyp7mXroUazi6knu1NwW8mrJtF3Fd9B8VrGSet5XFx7Bn",
+    "createUnderfunded": "MvXfiRJ93Sc5NecSyzFo1wEqtKTBGu9r5KaQTkhJZn3r21Gnd5LdgQfHmvSRV6JE7aoAYm12erRsiM75Ymo9BQH",
+    "commits": [
+      "4bZMH3rv95vGKuu5yRYkHvkCdP1BF75XPtkbHhTkGnApfEm9s5h3pgLHyUvwzWFBMNmzcTbjSUGG4f5ehhPtfa7n",
+      "3BqbLuLQ3BKoQC1Cqc1eiDFzfxdkAzDkGWP56dDECvofM3PL48GQGWwVhZts6opqw6f1QqRKiSmmb4T56gtPRRVB",
+      "5FJUMCr2h8EH4snsyhBpWVK9fmfu1gsFvfyDhZvJeK7tdAWzAhfgBZkVjDZNDjTfdzXixMEE8PT2A5Y65VMxRvNd"
+    ],
+    "launch": "5uyRohEpj91i7n2qHntzwSbqUWrLBbLQYuLGVAAzLaBWLSvZt3VewHNmvssecPWoLSBRD5SVTLaSWvAXA2fz1hBT",
+    "claim": "2MWuMyULWeMruZcyHVuJZfkua8YzivV9ARAHEbTVf3q4shnY9S3oSV6gsNmninTzsGHDuwg5XLbCzMmn8fYpqwow",
+    "refund": "25MXVk6LZpgc7ABgQcDwsKAyAHTQ1Xj9GJtWXE1kDHRguG5wXTHJL3qjLqcBMTJqs9Liio4Hw5NKcg5YBLQ6xDiE"
+  },
+  "checks": [
+    "create",
+    "YES commit",
+    "NO commit",
+    "launch",
+    "claim LP shares",
+    "refund"
+  ],
+  "postconditions": {
+    "verifiedAt": "2026-11-17T13:05:44.974Z",
+    "allReceiptsConfirmedWithoutError": true,
+    "fundedVaultLaunched": true,
+    "yesCommittedMusdc": 25,
+    "noCommittedMusdc": 25,
+    "lpSharesRaw": "14073748835532800000000",
+    "refundedPositionClaimed": true,
+    "remainingWalletMusdc": 950,
+    "creatorSignedRulesVerified": true,
+    "creationRules": {
+      "source": "https://github.com/hoymick/clique",
+      "yes": "YES if the documented devnet integration checks pass by the trading deadline.",
+      "no": "NO otherwise, including no public verification receipt by the deadline."
+    }
+  }
+}
