@@ -24,7 +24,7 @@ Commitment vaults are the core of the product. Clique calls PREDICT's initialize
 - A review step before commitments.
 - Funding deadlines, minimum targets, permissionless launch, LP share claims and eligible refunds.
 - Outcome source, YES condition and NO/missing-data fallback recorded in a creator-signed Memo instruction in the same transaction as vault creation. Readers verify the authority signature and initialize-vault instruction before accepting the memo.
-- Responsive interface using the reference hackathon site's Geist typography and green/purple palette.
+- Responsive blue-and-white interface with rounded Lilita One / Nunito typography, outlined status stickers and an original Clique badge.
 
 ## What judges can try
 

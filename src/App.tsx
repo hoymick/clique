@@ -70,12 +70,12 @@ function timeLeft(end: number, now: number) {
 }
 function Mark({ small = false }: { small?: boolean }) {
   return (
-    <span className={"mark " + (small ? "small" : "")} aria-hidden="true">
-      <i />
-      <i />
-      <i />
-      <i />
-    </span>
+    <img
+      className={"mark " + (small ? "small" : "")}
+      src="/clique-badge.svg"
+      alt=""
+      aria-hidden="true"
+    />
   );
 }
 function TopicIcon({ category }: { category: string }) {
@@ -101,8 +101,8 @@ function HeroArt() {
       <svg className="orbit-lines" viewBox="0 0 520 370">
         <defs>
           <linearGradient id="orbit-gradient">
-            <stop stopColor="#16ff93" stopOpacity=".8" />
-            <stop offset="1" stopColor="#a63eff" stopOpacity=".5" />
+            <stop stopColor="#477af8" stopOpacity=".8" />
+            <stop offset="1" stopColor="#8dc9ff" stopOpacity=".5" />
           </linearGradient>
         </defs>
         <ellipse

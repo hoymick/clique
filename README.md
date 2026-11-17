@@ -6,7 +6,7 @@ Community-funded prediction markets on Solana devnet and mainnet. Propose a YES/
 
 ## Visual direction
 
-Matches hackathons.solana.com's observed Geist / Geist Mono typography and palette: `#060607`, `#f7f7f5`, `#16ff93`, `#7dffc0`, and `#a63eff`. Fonts are bundled locally. Clique is an independent hackathon project, not an official Solana Foundation product.
+A playful blue-and-white theme inspired by the Pudgy Penguins reference: locally bundled Lilita One display headings and Nunito body text, sky-white `#f3fbff`, bright blue `#477af8`, navy `#082950` and yellow `#ffe58f`. Original smiling conversation-bubble badge, outlined pill buttons and rounded market cards. Clique keeps its own identity and has no affiliation with Pudgy Penguins or Solana Foundation.
 
 ## Run
 
@@ -81,7 +81,7 @@ Every new Clique vault records an HTTPS outcome source, a YES condition, and a N
 
 ## License
 
-Application source is MIT licensed. Bundled Geist font files retain their SIL Open Font License in `public/fonts/OFL.txt`. The optional proof-of-work funding helper is a minimal port of the MIT-licensed [Ellipsis Labs faucet CLI](https://github.com/jarry-xiao/proof-of-work-faucet); it uses only explicitly generated test keys.
+Application source is MIT licensed. Bundled Lilita One and Nunito retain their SIL Open Font Licenses in `public/fonts/LilitaOne-OFL.txt` and `public/fonts/Nunito-OFL.txt`. Earlier Geist assets retain their license in `public/fonts/OFL.txt`. The optional proof-of-work funding helper is a minimal port of the MIT-licensed [Ellipsis Labs faucet CLI](https://github.com/jarry-xiao/proof-of-work-faucet); it uses only explicitly generated test keys.
 
 ## Walkthrough media
 
