@@ -1,6 +1,6 @@
 # Dependency review — 17 November 2026
 
-Scope: the static browser app and local test scripts. No mainnet mode or hosted Node server is included.
+Scope: the static browser app and local test scripts. Optional mainnet mode uses Phantom; no hosted Node server is included. The mainnet addition is not a production security assessment.
 
 ## Patch applied
 
@@ -29,4 +29,4 @@ Primary advisories:
 
 Evidence: a Vite production build with sourcemaps was inspected for dependency module paths. This narrows the observed browser exposure; it does not prove absence of all security defects. Browser test keys are unencrypted in localStorage and are exclusively for disposable devnet assets.
 
-No forced SPL Token downgrade or incompatible parser-major override was applied merely to clear audit counts. Keep the app on devnet, never send real assets to its wallets, and review upstream fixes before any mainnet release. The live devnet lifecycle is now verified separately; successful integration testing is not a security audit.
+No forced SPL Token downgrade or incompatible parser-major override was applied merely to clear audit counts. Never send real assets to the devnet browser test wallet. Mainnet uses Phantom instead; review the remaining findings and upstream fixes before relying on it for production funds. The live devnet lifecycle is now verified separately; successful integration testing is not a security audit.

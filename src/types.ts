@@ -25,7 +25,7 @@ export type Market = {
   rules?: Rules;
   positions?: Record<string, Position>;
 };
-export type Mode = "demo" | "devnet";
+export type Mode = "demo" | "devnet" | "mainnet";
 export type Proposal = {
   title: string;
   target: number;

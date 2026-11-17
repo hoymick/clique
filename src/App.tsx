@@ -40,7 +40,7 @@ import {
   demoCommit,
   demoRefund,
 } from "./model.mjs";
-import * as chain from "./chain";
+import * as chains from "./chain";
 const money = (n: number, decimals = 0) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: decimals }).format(n);
 const short = (s: string) =>
@@ -228,10 +228,17 @@ function Modal({
 export default function App() {
   const [demo, setDemo] = useState(loadDemo);
   const [mode, setMode] = useState<Mode>(() =>
-    new URLSearchParams(location.search).get("mode") === "demo"
-      ? "demo"
-      : "devnet",
+    new URLSearchParams(location.search).get("mode") === "mainnet"
+      ? "mainnet"
+      : new URLSearchParams(location.search).get("mode") === "demo"
+        ? "demo"
+        : "devnet",
   );
+  const chain = chains.forNetwork(mode === "mainnet" ? "mainnet" : "devnet");
+  const networkLabel = mode === "mainnet" ? "Solana mainnet" : "Solana devnet";
+  const tokenLabel = mode === "devnet" ? "mUSDC" : "USDC";
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
   const [liveMarkets, setLiveMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(false);
   const [chainError, setChainError] = useState("");
@@ -240,6 +247,8 @@ export default function App() {
   const [filter, setFilter] = useState("all");
   const [category, setCategory] = useState("All topics");
   const [search, setSearch] = useState("");
+  const [vaultAddress, setVaultAddress] = useState("");
+  const [lookupError, setLookupError] = useState("");
   const [sort, setSort] = useState("trending");
   const [selected, setSelected] = useState<string | null>(null);
   const [modal, setModal] = useState<"wallet" | "create" | "how" | null>(null);
@@ -283,7 +292,13 @@ export default function App() {
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("vault");
     if (id) {
-      setMode(id.startsWith("sample-") || id.startsWith("demo-") ? "demo" : "devnet");
+      setMode(
+        id.startsWith("sample-") || id.startsWith("demo-")
+          ? "demo"
+          : new URLSearchParams(location.search).get("mode") === "mainnet"
+            ? "mainnet"
+            : "devnet",
+      );
       setSelected(id);
     }
   }, []);
@@ -302,26 +317,30 @@ export default function App() {
     return () => clearTimeout(t);
   }, [toast]);
   useEffect(() => {
+    let cancelled = false;
     setError("");
     setReview(false);
     setReceipt(null);
-    if (selected && mode === "devnet") {
+    if (selected && mode !== "demo") {
       const m = liveMarkets.find((x) => x.id === selected);
       if (m?.authority)
         chain
           .fetchRules(m.id, m.authority)
           .then((r) => {
-            if (r)
+            if (r && !cancelled)
               setLiveMarkets((ms) =>
                 ms.map((x) => (x.id === m.id ? { ...x, rules: r } : x)),
               );
           })
-          .catch((e) => setError(chain.readableError(e)));
+          .catch((e) => {
+            if (!cancelled) setError(chain.readableError(e));
+          });
     }
-    if (selected && mode === "devnet" && walletAddress)
+    if (selected && mode !== "demo" && walletAddress)
       chain
         .fetchPosition(selected)
         .then((p) => {
+          if (cancelled) return;
           if (p) setPositions((v) => ({ ...v, [selected]: p }));
           else
             setPositions((v) => {
@@ -330,20 +349,27 @@ export default function App() {
               return n;
             });
         })
-        .catch((e) => setError(chain.readableError(e)));
+        .catch((e) => {
+          if (!cancelled) setError(chain.readableError(e));
+        });
+    return () => {
+      cancelled = true;
+    };
   }, [selected, walletAddress, mode, market?.authority]);
   useEffect(() => {
-    if (mode !== "devnet") return;
+    if (mode === "demo") return;
     void refreshLive();
     const t = setInterval(() => {
       if (!document.hidden && !busy) void refreshLive(true);
     }, 30000);
     return () => clearInterval(t);
-  }, [mode, walletAddress]);
+  }, [mode, walletAddress, selected]);
   async function refreshLive(quiet = false) {
+    const requestedMode = mode;
     if (!quiet) setLoading(true);
     try {
-      const next = await chain.fetchVaults();
+      const next = await chain.fetchVaults(selected || undefined);
+      if (modeRef.current !== requestedMode) return;
       setLiveMarkets(next);
       setChainError("");
       if (walletAddress) {
@@ -351,6 +377,7 @@ export default function App() {
           chain.balances(),
           ...next.map((m) => chain.fetchPosition(m.id)),
         ]);
+        if (modeRef.current !== requestedMode) return;
         if (results[0].status === "fulfilled")
           setLiveBalance(results[0].value as { usdc: number; sol: number });
         const p: Record<string, Position> = {};
@@ -362,13 +389,27 @@ export default function App() {
         setPositions(p);
       }
     } catch (e) {
-      setChainError(chain.readableError(e));
+      if (modeRef.current === requestedMode)
+        setChainError(chain.readableError(e));
     } finally {
-      setLoading(false);
+      if (modeRef.current === requestedMode) setLoading(false);
     }
   }
   function changeMode(next: Mode) {
     if (busy) return;
+    const url = new URL(location.href);
+    url.searchParams.set("mode", next);
+    url.searchParams.delete("vault");
+    history.replaceState(null, "", url);
+    chain.disconnectTestWallet();
+    setWalletAddress("");
+    setPositions({});
+    setLiveBalance({ sol: 0, usdc: 0 });
+    setLiveMarkets([]);
+    setToast(null);
+    setLookupError("");
+    setVaultAddress("");
+    modeRef.current = next;
     setSelected(null);
     setModal(null);
     setReview(false);
@@ -398,10 +439,24 @@ export default function App() {
         setModal(null);
         tell("Demo wallet ready. You have 1,000 simulated USDC to explore.");
       } else {
-        const address = chain.connectTestWallet();
+        const address =
+          mode === "mainnet"
+            ? await chain.connectExternalWallet(() => {
+                setWalletAddress("");
+                setPositions({});
+                setLiveBalance({ sol: 0, usdc: 0 });
+                setError(
+                  "Wallet account changed or disconnected. Reconnect to continue.",
+                );
+              })
+            : chain.connectTestWallet();
         setWalletAddress(address);
         setModal(null);
-        tell("Devnet test wallet connected. Get test funds to begin.");
+        tell(
+          mode === "mainnet"
+            ? "Phantom connected on mainnet. Transactions use real USDC and require wallet approval."
+            : "Devnet test wallet connected. Get test funds to begin.",
+        );
         try {
           setLiveBalance(await chain.balances());
         } catch (e) {
@@ -482,7 +537,7 @@ export default function App() {
         await refreshLive(true);
       }
       setReceipt({
-        text: `${money(Number(amount), 6)} ${mode === "demo" ? "demo USDC" : "mUSDC"} committed. You’re part of this clique.`,
+        text: `${money(Number(amount), 6)} ${mode === "demo" ? "demo USDC" : tokenLabel} committed. You’re part of this clique.`,
         signature: sig,
       });
       setReview(false);
@@ -587,7 +642,11 @@ export default function App() {
   async function create(e: React.FormEvent) {
     e.preventDefault();
     if (!connected) {
-      setError("Connect a test wallet before proposing a market.");
+      setError(
+        mode === "mainnet"
+          ? "Connect Phantom before proposing a mainnet market."
+          : "Connect a test wallet before proposing a market.",
+      );
       return;
     }
     if (!validateRules(form.rules)) {
@@ -769,6 +828,7 @@ export default function App() {
               >
                 <option value="demo">Demo mode</option>
                 <option value="devnet">Solana devnet</option>
+                <option value="mainnet">Solana mainnet · real funds</option>
               </select>
               <ChevronDown size={12} />
             </label>
@@ -782,7 +842,9 @@ export default function App() {
                   ? mode === "demo"
                     ? "Demo wallet"
                     : short(walletAddress)
-                  : "Get started"}
+                  : mode === "mainnet"
+                    ? "Connect Phantom"
+                    : "Get started"}
               </span>
             </button>
           </div>
@@ -838,12 +900,16 @@ export default function App() {
             <span>
               {mode === "demo"
                 ? "A preview of what we can build."
-                : "Your community, onchain."}
+                : mode === "mainnet"
+                  ? "Your saved mainnet vaults."
+                  : "Your community, onchain."}
             </span>
             <small>
               {mode === "demo"
                 ? "Illustrative markets · simulated funds"
-                : "Solana devnet · test funds only"}
+                : mode === "mainnet"
+                  ? "Solana mainnet · real USDC"
+                  : "Solana devnet · test funds only"}
             </small>
           </div>
           <div className="stat">
@@ -871,7 +937,7 @@ export default function App() {
             </div>
             <span className="section-note">
               {view === "positions" ? (
-                `${money(myTotal, 2)} ${mode === "demo" ? "demo USDC" : "mUSDC"} committed`
+                `${money(myTotal, 2)} ${mode === "demo" ? "demo USDC" : tokenLabel} committed`
               ) : (
                 <>
                   <span className="live-dot" />
@@ -947,12 +1013,13 @@ export default function App() {
               <ChevronDown size={12} />
             </label>
           </div>
-          {mode === "devnet" && (
+          {mode !== "demo" && (
             <div className="devnet-notice">
               <Info size={16} />
               <span>
-                Live commitment vaults on Solana devnet. mUSDC has no monetary
-                value.
+                {mode === "mainnet"
+                  ? "Mainnet uses real USDC and SOL. Resolution is creator-controlled and LP value can fall. This release has not been independently audited."
+                  : "Live commitment vaults on Solana devnet. mUSDC has no monetary value."}
               </span>
               <button
                 className="text-button"
@@ -964,7 +1031,58 @@ export default function App() {
               </button>
             </div>
           )}
-          {chainError && mode === "devnet" && (
+          {mode === "mainnet" && (
+            <form
+              className="mainnet-lookup"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (busy) return;
+                setBusy("Opening mainnet vault");
+                setLookupError("");
+                try {
+                  const rows = await chain.fetchVaults(vaultAddress.trim());
+                  setLiveMarkets(rows);
+                  setSelected(vaultAddress.trim());
+                  setVaultAddress("");
+                } catch (e) {
+                  setLookupError(chain.readableError(e));
+                } finally {
+                  setBusy("");
+                }
+              }}
+            >
+              <label htmlFor="mainnet-vault-address">
+                Open a shared mainnet vault
+              </label>
+              <div className="inline-actions">
+                <input
+                  id="mainnet-vault-address"
+                  placeholder="Paste the vault address"
+                  value={vaultAddress}
+                  onChange={(e) => setVaultAddress(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+                <button
+                  className="button secondary"
+                  disabled={!!busy || !vaultAddress.trim()}
+                >
+                  Open vault
+                </button>
+              </div>
+              <small>
+                Mainnet shows your saved vaults and shared links. Amounts and
+                rules are read from the chain. Saved addresses stay in this
+                browser.
+              </small>
+              {lookupError && (
+                <div className="form-error" role="alert">
+                  {lookupError}
+                </div>
+              )}
+            </form>
+          )}
+          {chainError && mode !== "demo" && (
             <div className="error-banner" role="alert">
               {chainError}
               <button onClick={() => refreshLive()} disabled={loading}>
@@ -976,7 +1094,7 @@ export default function App() {
             <div className="empty-state">
               <Loader2 className="spin" />
               <h3>Finding your markets…</h3>
-              <p>Reading commitment vaults from Solana devnet.</p>
+              <p>Reading commitment vaults from {networkLabel}.</p>
             </div>
           ) : (
             <div className="market-grid">
@@ -1073,45 +1191,49 @@ export default function App() {
               })}
             </div>
           )}
-          {!loading && visible.length === 0 && (
-            <div className="empty-state">
-              <Orbit size={32} />
-              <h3>
-                {view === "positions"
-                  ? "Your clique starts with a commitment."
-                  : search
-                    ? "No markets match your search."
-                    : "There’s room for your question."}
-              </h3>
-              <p>
-                {view === "positions"
-                  ? "Back a funding market and follow its journey here."
-                  : mode === "devnet"
-                    ? "Be the first to propose a Clique market on devnet."
-                    : "Try another topic or propose a market of your own."}
-              </p>
-              <button
-                className="button secondary"
-                onClick={() => {
-                  if (view === "positions") {
-                    setView("discover");
-                    setFilter("all");
-                  } else if (search) {
-                    setSearch("");
-                    setCategory("All topics");
-                    setFilter("all");
-                  } else setModal("create");
-                }}
-              >
-                {view === "positions"
-                  ? "Explore markets"
-                  : search
-                    ? "Clear filters"
-                    : "Propose a market"}
-                <ArrowRight size={15} />
-              </button>
-            </div>
-          )}
+          {!loading &&
+            visible.length === 0 &&
+            !(mode !== "demo" && chainError) && (
+              <div className="empty-state">
+                <Orbit size={32} />
+                <h3>
+                  {view === "positions"
+                    ? "Your clique starts with a commitment."
+                    : search
+                      ? "No markets match your search."
+                      : "There’s room for your question."}
+                </h3>
+                <p>
+                  {view === "positions"
+                    ? "Back a funding market and follow its journey here."
+                    : mode !== "demo"
+                      ? mode === "mainnet"
+                        ? "No saved mainnet vaults yet. Open a shared vault address above, or propose a market with Phantom."
+                        : "Be the first to propose a Clique market on devnet."
+                      : "Try another topic or propose a market of your own."}
+                </p>
+                <button
+                  className="button secondary"
+                  onClick={() => {
+                    if (view === "positions") {
+                      setView("discover");
+                      setFilter("all");
+                    } else if (search) {
+                      setSearch("");
+                      setCategory("All topics");
+                      setFilter("all");
+                    } else setModal("create");
+                  }}
+                >
+                  {view === "positions"
+                    ? "Explore markets"
+                    : search
+                      ? "Clear filters"
+                      : "Propose a market"}
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            )}
         </section>
         <section className="how-strip container">
           <div className="how-intro">
@@ -1217,7 +1339,7 @@ export default function App() {
         </div>
         <span className="footer-network">
           <span className="live-dot" />
-          {mode === "demo" ? "Demo environment" : "Solana devnet"}
+          {mode === "demo" ? "Demo environment" : networkLabel}
         </span>
       </footer>
       {toast && (
@@ -1260,29 +1382,33 @@ export default function App() {
           <p className="modal-description">
             {mode === "demo"
               ? "Explore the complete funding experience with simulated USDC. No wallet extension or real money needed."
-              : "Create a browser-based Solana devnet wallet. It signs test transactions only. Never send real funds to this address."}
+              : mode === "mainnet"
+                ? "Connect Phantom to use your own mainnet wallet. Your private key stays in Phantom; each transaction requires your approval."
+                : "Create a browser-based Solana devnet wallet. It signs test transactions only. Never send real funds to this address."}
           </p>
           {connected ? (
             <>
               <div className="wallet-summary">
                 <span>
-                  {mode === "demo" ? "Demo balance" : "Devnet balance"}
+                  {mode === "demo" ? "Demo balance" : `${networkLabel} balance`}
                 </span>
                 <strong>
                   {money(balance, 2)}{" "}
-                  <small>{mode === "demo" ? "demo USDC" : "mUSDC"}</small>
+                  <small>{mode === "demo" ? "demo USDC" : tokenLabel}</small>
                 </strong>
-                {mode === "devnet" && (
+                {mode !== "demo" && (
                   <>
                     <code>{short(walletAddress)}</code>
                     <span className="sol-balance">
-                      {money(liveBalance.sol, 5)} SOL for test transaction fees
+                      {money(liveBalance.sol, 5)} SOL for{" "}
+                      {mode === "mainnet" ? "mainnet" : "test"} transaction fees
                     </span>
-                    {liveBalance.sol < 0.005 && (
+                    {mode === "devnet" && liveBalance.sol < 0.005 && (
                       <div className="sol-faucet-note">
                         Copy your wallet address below, request free SOL on the
                         official faucet with Devnet selected, then refresh your
-                        balance. Test mUSDC and devnet SOL have no monetary value.
+                        balance. Test mUSDC and devnet SOL have no monetary
+                        value.
                         <a
                           href="https://faucet.solana.com/"
                           target="_blank"
@@ -1301,7 +1427,7 @@ export default function App() {
                           setError("");
                           try {
                             setLiveBalance(await chain.balances());
-                            tell("Devnet balance refreshed.");
+                            tell(`${networkLabel} balance refreshed.`);
                           } catch (e) {
                             setError(chain.readableError(e));
                           } finally {
@@ -1336,18 +1462,20 @@ export default function App() {
                   </>
                 )}
               </div>
-              <button
-                className="button primary full"
-                disabled={!!busy}
-                onClick={getFunds}
-              >
-                {busy ? (
-                  <Loader2 size={16} className="spin" />
-                ) : (
-                  <Plus size={16} />
-                )}
-                {mode === "demo" ? "Get demo funds" : "Get test USDC"}
-              </button>
+              {mode !== "mainnet" && (
+                <button
+                  className="button primary full"
+                  disabled={!!busy}
+                  onClick={getFunds}
+                >
+                  {busy ? (
+                    <Loader2 size={16} className="spin" />
+                  ) : (
+                    <Plus size={16} />
+                  )}
+                  {mode === "demo" ? "Get demo funds" : "Get test USDC"}
+                </button>
+              )}
               <button
                 className="button secondary full"
                 disabled={!!busy}
@@ -1379,7 +1507,9 @@ export default function App() {
               )}{" "}
               {mode === "demo"
                 ? "Try with 1,000 demo USDC"
-                : "Create / connect test wallet"}
+                : mode === "mainnet"
+                  ? "Connect Phantom"
+                  : "Create / connect test wallet"}
               <ArrowRight size={16} />
             </button>
           )}
@@ -1393,7 +1523,9 @@ export default function App() {
             <span>
               {mode === "demo"
                 ? "Demo actions stay in this browser. Switch to Solana devnet for onchain commitments."
-                : "Your test key stays in this browser. Clearing site data removes access. This wallet is not suitable for real funds."}
+                : mode === "mainnet"
+                  ? "Real USDC. Private keys stay in Phantom. Review the network, amount and recipient in every wallet request."
+                  : "Your test key stays in this browser. Clearing site data removes access. This wallet is not suitable for real funds."}
             </span>
           </div>
           {mode === "demo" && (
@@ -1460,7 +1592,9 @@ export default function App() {
             <span>
               {mode === "demo"
                 ? "Demo markets use simulated funds."
-                : "Devnet uses mUSDC with no monetary value."}
+                : mode === "mainnet"
+                  ? "Mainnet uses real USDC and SOL. LP value can fall."
+                  : "Devnet uses mUSDC with no monetary value."}
             </span>
             <a
               href="https://predict-pm-amm.dev/"
@@ -1519,19 +1653,19 @@ export default function App() {
                       setForm({ ...form, target: Number(e.target.value) })
                     }
                   />
-                  <span>{mode === "demo" ? "USDC" : "mUSDC"}</span>
+                  <span>{tokenLabel}</span>
                 </div>
               </label>
               <label className="field">
                 Topic
                 <select
-                  disabled={mode === "devnet"}
-                  value={mode === "devnet" ? "Community" : form.category}
+                  disabled={mode !== "demo"}
+                  value={mode !== "demo" ? "Community" : form.category}
                   onChange={(e) =>
                     setForm({ ...form, category: e.target.value })
                   }
                 >
-                  {mode === "devnet" ? (
+                  {mode !== "demo" ? (
                     <option>Community</option>
                   ) : (
                     categories.slice(1).map((c) => <option key={c}>{c}</option>)
@@ -1575,8 +1709,8 @@ export default function App() {
               <span>
                 The trading deadline is fixed relative to the funding deadline.
                 Launch promptly after funding closes.{" "}
-                {mode === "devnet"
-                  ? "The creator is the onchain resolution authority. Devnet vaults are listed under Community."
+                {mode !== "demo"
+                  ? "The creator is the onchain resolution authority. Onchain vaults are listed under Community."
                   : "This creates a simulated market in your browser."}
               </span>
             </div>
@@ -1673,7 +1807,7 @@ export default function App() {
             <div className="form-footnote">
               {mode === "demo"
                 ? "Demo mode · no blockchain transaction"
-                : "Solana devnet · test SOL required for account creation"}
+                : `${networkLabel} · ${mode === "mainnet" ? "real" : "test"} SOL required for account creation`}
             </div>
           </form>
         </Modal>
@@ -1852,6 +1986,7 @@ export default function App() {
                   }
                   const u = new URL(location.href);
                   u.searchParams.set("vault", market.id);
+                  u.searchParams.set("mode", mode);
                   navigator.clipboard
                     .writeText(u.toString())
                     .then(() => tell("Market link copied."))
@@ -1908,7 +2043,7 @@ export default function App() {
                       </span>
                       <strong>
                         {money(activePosition.yes + activePosition.no, 2)}{" "}
-                        {mode === "demo" ? "USDC" : "mUSDC"}
+                        {tokenLabel}
                       </strong>
                     </div>
                   )}
@@ -1948,7 +2083,7 @@ export default function App() {
                             inputMode="decimal"
                             disabled={!!busy || review}
                           />
-                          <span>{mode === "demo" ? "USDC" : "mUSDC"}</span>
+                          <span>{tokenLabel}</span>
                         </div>
                       </label>
                       {!review && (
@@ -1976,8 +2111,7 @@ export default function App() {
                         <div>
                           <span>Available balance</span>
                           <span>
-                            {connected ? money(balance, 2) : "—"}{" "}
-                            {mode === "demo" ? "USDC" : "mUSDC"}
+                            {connected ? money(balance, 2) : "—"} {tokenLabel}
                           </span>
                         </div>
                         <div>
@@ -1992,15 +2126,15 @@ export default function App() {
                         <div>
                           <span>Network</span>
                           <span>
-                            {mode === "demo" ? "Simulated" : "Solana devnet"}
+                            {mode === "demo" ? "Simulated" : networkLabel}
                           </span>
                         </div>
                       </div>
                       {review && (
                         <div className="review-note">
                           You are committing {money(Number(amount), 6)}{" "}
-                          {mode === "demo" ? "simulated USDC" : "mUSDC"} to this
-                          vault. Funds stay committed until launch or an
+                          {mode === "demo" ? "simulated USDC" : tokenLabel} to
+                          this vault. Funds stay committed until launch or an
                           eligible refund. Your eventual share changes as others
                           contribute.
                         </div>
@@ -2135,7 +2269,9 @@ export default function App() {
                     <span>
                       {mode === "demo"
                         ? "Demo funds are simulated and stay in this browser."
-                        : "Transactions use devnet mUSDC. No real funds."}
+                        : mode === "mainnet"
+                          ? "Mainnet: real USDC and SOL. Approval is requested in Phantom."
+                          : "Transactions use devnet mUSDC. No real funds."}
                     </span>
                   </div>
                 </>
