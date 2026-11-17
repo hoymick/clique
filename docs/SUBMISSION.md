@@ -20,7 +20,7 @@ Commitment vaults are the core of the product. Clique calls PREDICT's initialize
 
 - Searchable, filterable community proposal discovery and personal commitment tracking.
 - Explicitly separate browser-local demo and live Solana devnet datasets.
-- Browser test-wallet connection, mUSDC faucet, balances and transaction Explorer receipts.
+- Devnet browser test wallet and faucet, plus optional mainnet via Phantom, real USDC balances and network-correct Explorer receipts.
 - A review step before commitments.
 - Funding deadlines, minimum targets, permissionless launch, LP share claims and eligible refunds.
 - Outcome source, YES condition and NO/missing-data fallback recorded in a creator-signed Memo instruction in the same transaction as vault creation. Readers verify the authority signature and initialize-vault instruction before accepting the memo.
@@ -49,14 +49,15 @@ The browser walkthrough video is labelled as a **simulation**. It demonstrates t
 
 - Creator-controlled resolution: signed terms make the original rules inspectable but do not enforce honest resolution or add an oracle/dispute mechanism.
 - Launch is permissionless but manually triggered; no unattended keeper is included.
-- Test wallets are devnet-only and stored in the browser. No mainnet custody or mainnet trading is offered.
+- Mainnet discovery opens shared or locally saved vault addresses; there is no global mainnet index.
+- Browser test keys are devnet-only. Optional mainnet funding uses Phantom approvals; its signing behavior is tested with a mock wallet, but real mainnet transactions have not been verified. Clique does not hold mainnet private keys.
 - The current scope ends at LP claiming; no in-app trading or LP-withdrawal screen is provided.
 - LP value can fall; capital committed to a launched market is not guaranteed to be recoverable at its initial value.
 - No real-user adoption, volume or fee figures are claimed. This matters particularly for the PREDICT bounty's traction criterion.
 
 ## Roadmap
 
-Add wallet-adapter support, resolution adapters, LP management and an opt-in launch keeper. Validate demand with actual communities before making growth claims.
+Add more external wallets, resolution adapters, LP management and an opt-in launch keeper. Validate demand with actual communities before making growth claims.
 
 ## Demo media
 

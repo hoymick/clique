@@ -2,7 +2,7 @@
 
 [Live app](https://clique-markets.tinyether2.chatgpt.site) · [Judge guide and video](https://clique-markets.tinyether2.chatgpt.site/submission/) · [Submission description](docs/SUBMISSION.md)
 
-Community-funded prediction markets on Solana. Propose a YES/NO question, gather commitments toward a liquidity target, launch after funding closes, and claim LP shares or an eligible refund.
+Community-funded prediction markets on Solana devnet and mainnet. Propose a YES/NO question, gather commitments toward a liquidity target, launch after funding closes, and claim LP shares or an eligible refund.
 
 ## Visual direction
 
@@ -34,7 +34,17 @@ Implemented operations:
 - Claim eligible refunds (`send.refundCommit`)
 - Read vaults and wallet positions; request faucet mUSDC; link to public Explorer receipts
 
-Uses an explicitly devnet-only browser test wallet. Keys stay on the visitor's browser and must never receive mainnet assets. Clearing site data removes access to that wallet. No production wallet custody or mainnet mode is implemented.
+Uses an explicitly devnet-only browser test wallet. Keys stay on the visitor's browser and must never receive mainnet assets. Clearing site data removes access to that wallet. Mainnet uses Phantom, with private keys kept in the extension and individual wallet approval. Browser test keys and faucets are rejected on mainnet.
+
+## Mainnet
+
+Select **Solana mainnet · real funds** in the network menu, then **Connect Phantom**. Mainnet uses real Circle USDC and SOL. Devnet remains the default; `?mode=mainnet` opens mainnet explicitly. Each network has an independent reader, signing session and signed-rules cache. Switching clears displayed wallets, balances, positions, markets and receipts; share links include their network.
+
+Mainnet supports the same create/commit/launch/LP-claim/refund SDK flow through Phantom. Every signing request validates the connected account and RPC genesis hash before wallet approval. Keys are never requested, generated or saved by Clique for mainnet. Mainnet has no faucet. The USDC mint is the protocol's documented mainnet collateral. Mainnet RPC uses PublicNode (`https://solana-rpc.publicnode.com`); its cluster is verified before signing. Only Clique-prefixed vaults are shown. Mainnet discovery opens shared vault addresses or links, and saves up to 20 addresses locally. Account state and rules are fetched onchain; global mainnet indexing is not included.
+
+**Verification:** mainnet program deployment, genesis hash and vault reading were checked. Rejection, network mismatch and signing-boundary behavior were tested using a mocked provider. **No real mainnet transaction was sent or verified.** The eight published lifecycle receipts are devnet-only. This release has not received an independent security audit; creator-controlled resolution and LP-loss risks still apply.
+
+Phantom injection currently requires its browser extension or in-app browser. Other wallets and mobile deep links are not included.
 
 ## Protocol semantics
 
@@ -56,7 +66,7 @@ Confirmation uses HTTPS signature polling instead of WebSockets. No private RPC 
 ## Validation and known limits
 
 - TypeScript and production build checked.
-- Eighteen tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision, UTF-8 question length, and transaction confirmation success, failure, expiry and timeout.
+- Twenty-three tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision, UTF-8 question length, confirmation outcomes, network isolation, mainnet wallet requirements, rejection handling and cluster checks.
 - Browser demo exercised through creation, commitment review, launch, LP claim and refund.
 - **Live devnet lifecycle verified on 17 November 2026:** creation, YES and NO commitments, permissionless launch, LP claim and refund all confirmed successfully. [Public receipts](DEVNET-VERIFICATION.json) include postchecks for LP shares, returned funds and creator-signed settlement rules. These are developer integration transactions, not user traction.
 - `scripts/devnet-smoke.cjs` uses a generated, ephemeral test key and attempts a create / commit / launch / LP-claim / refund flow. It never reads a user's wallet. Pass a funded test-only key path as the first argument; successful results write only public addresses and transaction signatures to `DEVNET-VERIFICATION.json`.

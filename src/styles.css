@@ -2686,3 +2686,35 @@ h2 {
   flex-wrap: wrap;
   gap: 14px;
 }
+
+.mainnet-lookup {
+  padding: 18px;
+  border: 1px solid #a63eff40;
+  border-radius: 12px;
+  margin: 14px 0 24px;
+}
+.mainnet-lookup label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.mainnet-lookup input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ffffff25;
+  background: #101014;
+  color: #f7f7f5;
+  padding: 12px;
+  border-radius: 7px;
+}
+.mainnet-lookup small {
+  display: block;
+  color: #9696a1;
+  font-size: 12px;
+  margin-top: 10px;
+}
+.mainnet-lookup .inline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

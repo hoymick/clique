@@ -19,7 +19,7 @@ Creators set a question, funding target, deadlines, evidence source and YES/NO s
 The core product is built around PREDICT’s commitment vault and launch mechanism. The commitment ratio sets the initial YES/NO price, and the pooled commitments become the market’s liquidity. A generic constant-product AMM does not provide this complete funding-to-outcome-market lifecycle on its own. Clique also records settlement terms in a creator-signed memo alongside vault initialization and verifies the original transaction before displaying those terms as verified.
 
 ## What works today
-The deployed app reads the devnet dataset, creates browser test wallets and requests faucet mUSDC. The interface includes proposals, commitment review, launch, LP claims and refunds through the SDK, plus a separate complete browser-local simulation. Eighteen automated tests, a production build and the maximum-size transaction serialization check pass. The live devnet create/commit/launch/LP-claim/refund lifecycle is verified with public transaction receipts and account-state postchecks. See DEVNET-VERIFICATION.json.
+The deployed app reads the devnet dataset, creates browser test wallets and requests faucet mUSDC. The interface includes proposals, commitment review, launch, LP claims and refunds through the SDK, plus a separate complete browser-local simulation. Twenty-three automated tests, a production build and the maximum-size transaction serialization check pass. The live devnet create/commit/launch/LP-claim/refund lifecycle is verified with public transaction receipts and account-state postchecks. See DEVNET-VERIFICATION.json.
 
 ## Links
 - App: https://clique-markets.tinyether2.chatgpt.site
@@ -31,10 +31,10 @@ The deployed app reads the devnet dataset, creates browser test wallets and requ
 No real-user adoption, application transaction volume, trades or protocol fees are claimed. Seeded demo statistics are simulated. A faucet mint is not product traction.
 
 ## Limits
-Devnet only. Resolution remains creator-controlled; signed terms are inspectable but do not enforce correct resolution. LP capital can lose value. Launch is manually triggered. This build ends at LP claiming; it does not include an in-app trading or LP-withdrawal screen. Nine dependency audit findings remain, with observed browser reachability documented separately.
+Devnet is the default, with optional mainnet through Phantom. Mainnet reads and mock-wallet checks pass; no real mainnet transactions were verified. Resolution remains creator-controlled; signed terms are inspectable but do not enforce correct resolution. LP capital can lose value. Launch is manually triggered. This build ends at LP claiming; it does not include an in-app trading or LP-withdrawal screen. Nine dependency audit findings remain, with observed browser reachability documented separately.
 
 ## Next steps
-Test with real communities, add external-wallet support, and explore resolution adapters and LP management.
+Test with real communities, add support for more external wallets, and explore resolution adapters and LP management.
 
 ## Fields the entrant must supply
 Enter your actual team member names and contact details in the submission form. Review any event declarations and terms yourself. This packet does not claim a submission has been made or accepted.
