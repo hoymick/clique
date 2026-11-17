@@ -25,7 +25,7 @@ scenes=[
  ('08-refund',7,'ALTERNATE PATH','What if the target is missed?','An eligible underfunded vault lets its backers reclaim commitments.'),
  ('09-refunded',6,'REFUND CONFIRMED','A clear end to the funding journey.','Demo funds return to the browser wallet. No real funds are involved.'),
  ('10-devnet',8,'SEPARATE ENVIRONMENTS','Demo activity is not onchain traction.','Devnet reads PREDICT vaults and uses the actual Solana SDK integration.'),
- (None,8,'One verification step remains.','Live devnet receipts need test SOL.','Public app, source, signed-rule integration and 13 tests are available.'),
+ (None,8,'Verified separately on devnet.','The full funding lifecycle passed.','Create, commit, launch, LP claim and refund. Public receipts on the judge page.'),
  (None,6,'Bring your question.','Find your clique.','clique-markets.tinyether2.chatgpt.site   /   github.com/hoymick/clique'),
 ]
 for i,(shot,duration,kicker,title,body) in enumerate(scenes):

@@ -29,4 +29,4 @@ Primary advisories:
 
 Evidence: a Vite production build with sourcemaps was inspected for dependency module paths. This narrows the observed browser exposure; it does not prove absence of all security defects. Browser test keys are unencrypted in localStorage and are exclusively for disposable devnet assets.
 
-No forced SPL Token downgrade or incompatible parser-major override was applied merely to clear audit counts. Keep the app on devnet, never send real assets to its wallets, and complete live lifecycle verification once a test signing wallet has free devnet SOL.
+No forced SPL Token downgrade or incompatible parser-major override was applied merely to clear audit counts. Keep the app on devnet, never send real assets to its wallets, and review upstream fixes before any mainnet release. The live devnet lifecycle is now verified separately; successful integration testing is not a security audit.

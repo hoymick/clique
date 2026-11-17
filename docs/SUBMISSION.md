@@ -41,7 +41,7 @@ Commitment vaults are the core of the product. Clique calls PREDICT's initialize
 
 Domain tests, rules-validation tests, TypeScript checks and a maximum-size signed transaction serialization check are included. The demo journey has been exercised in a browser.
 
-**Live devnet transaction verification is pending test-SOL funding.** The PREDICT faucet returned mUSDC with zero SOL; the public RPC airdrop returned 410; the inspected proof-of-work faucets had no funded eligible pool. No simulated number is reported as onchain traction. The integration script accepts an explicit test key path and writes public transaction receipts only after all checks pass.
+**Live devnet lifecycle verified on 17 November 2026.** All eight transaction receipts confirmed without errors: two vault creations, three YES/NO commitments, launch, LP claim and refund. Postchecks verified positive LP shares, the refunded position, a 950 mUSDC ending wallet balance, and creator-signed rules in the creation transaction. [Public verification evidence](../DEVNET-VERIFICATION.json). This is developer testing, not user adoption or trading volume.
 
 The browser walkthrough video is labelled as a **simulation**. It demonstrates the product flow, not completed devnet transactions.
 
@@ -56,7 +56,7 @@ The browser walkthrough video is labelled as a **simulation**. It demonstrates t
 
 ## Roadmap
 
-Complete and publish live devnet receipts; add wallet-adapter support, resolution adapters, LP management and an opt-in launch keeper. Validate demand with actual communities before making growth claims.
+Add wallet-adapter support, resolution adapters, LP management and an opt-in launch keeper. Validate demand with actual communities before making growth claims.
 
 ## Demo media
 

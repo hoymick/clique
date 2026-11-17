@@ -52,6 +52,10 @@ test("commit updates only the chosen side and the committer position", () => {
   assert.equal(m.no, 40);
   assert.equal(m.positions.alice.yes, 25);
   assert.equal(vault.yes, 60);
+  assert.equal(m.backers, 3);
+  const repeated = demoCommit(m, "alice", "no", 10, now);
+  assert.equal(repeated.backers, 3);
+  assert.equal(repeated.positions.alice.no, 10);
   assert.throws(() => demoCommit(vault, "alice", "yes", 25, now + 11000));
 });
 test("refund cannot be replayed or claimed from a healthy vault", () => {
@@ -59,6 +63,9 @@ test("refund cannot be replayed or claimed from a healthy vault", () => {
   assert.throws(() => demoRefund(m, "alice", now));
   const r = demoRefund(m, "alice", now + 11000);
   assert.equal(r.positions.alice.claimed, true);
+  assert.equal(r.yes, m.yes);
+  assert.equal(r.no, m.no - 25);
+  assert.equal(m.no, 65);
   assert.throws(() => demoRefund(r, "alice", now + 11000));
   assert.throws(() => demoRefund({ ...m, target: 100 }, "alice", now + 11000));
 });
