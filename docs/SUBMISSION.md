@@ -28,7 +28,7 @@ Commitment vaults are the core of the product. Clique calls PREDICT's initialize
 
 ## What judges can try
 
-1. Open the app and keep **Demo mode** selected.
+1. The app opens on **Solana devnet**. Select **Demo mode** for the simulated walkthrough.
 2. Select **Get started** to receive simulated USDC.
 3. Propose a question with an HTTPS outcome source and explicit settlement rules.
 4. Commit toward a small target; inspect the review screen.

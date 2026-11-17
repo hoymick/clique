@@ -227,7 +227,11 @@ function Modal({
 }
 export default function App() {
   const [demo, setDemo] = useState(loadDemo);
-  const [mode, setMode] = useState<Mode>("demo");
+  const [mode, setMode] = useState<Mode>(() =>
+    new URLSearchParams(location.search).get("mode") === "demo"
+      ? "demo"
+      : "devnet",
+  );
   const [liveMarkets, setLiveMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(false);
   const [chainError, setChainError] = useState("");
@@ -279,8 +283,7 @@ export default function App() {
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("vault");
     if (id) {
-      if (!id.startsWith("sample-") && !id.startsWith("demo-"))
-        setMode("devnet");
+      setMode(id.startsWith("sample-") || id.startsWith("demo-") ? "demo" : "devnet");
       setSelected(id);
     }
   }, []);
@@ -420,8 +423,14 @@ export default function App() {
         tell("Added 1,000 simulated USDC.");
       } else {
         const r = await chain.faucet();
-        setLiveBalance(await chain.balances());
-        tell(`Test funds received: ${r.amount} mUSDC.`, r.signature);
+        const nextBalance = await chain.balances();
+        setLiveBalance(nextBalance);
+        tell(
+          nextBalance.sol < 0.005
+            ? `${r.amount} test mUSDC received. You still need free devnet SOL for transaction fees; open Your wallet for the SOL faucet.`
+            : `Test funds received: ${r.amount} mUSDC.`,
+          r.signature,
+        );
       }
     } catch (e) {
       setError(chain.readableError(e));
@@ -1271,8 +1280,9 @@ export default function App() {
                     </span>
                     {liveBalance.sol < 0.005 && (
                       <div className="sol-faucet-note">
-                        You need devnet SOL to create or fund a vault. The mUSDC
-                        faucet may not supply SOL.
+                        Copy your wallet address below, request free SOL on the
+                        official faucet with Devnet selected, then refresh your
+                        balance. Test mUSDC and devnet SOL have no monetary value.
                         <a
                           href="https://faucet.solana.com/"
                           target="_blank"
@@ -1284,6 +1294,23 @@ export default function App() {
                       </div>
                     )}
                     <div className="inline-actions">
+                      <button
+                        disabled={!!busy}
+                        onClick={async () => {
+                          setBusy("Refreshing balance");
+                          setError("");
+                          try {
+                            setLiveBalance(await chain.balances());
+                            tell("Devnet balance refreshed.");
+                          } catch (e) {
+                            setError(chain.readableError(e));
+                          } finally {
+                            setBusy("");
+                          }
+                        }}
+                      >
+                        Refresh balance <RefreshCw size={12} />
+                      </button>
                       <a
                         target="_blank"
                         rel="noreferrer"

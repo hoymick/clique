@@ -21,9 +21,9 @@ npm test
 
 ## Environments
 
-**Demo (default):** complete browser-local simulation with explicitly labelled sample markets and funds. Get started gives 1,000 demo USDC. The wallet can add more simulated funds. Propose a market, commit on YES/NO, and expand **Test the full journey** to close the demo funding window. Funded vaults can launch and contributors can claim LP shares; underfunded vaults can refund. Demo records survive refresh in localStorage. Custom demo proposals cannot be shared across devices.
+**Demo:** complete browser-local simulation with explicitly labelled sample markets and funds. Get started gives 1,000 demo USDC. The wallet can add more simulated funds. Propose a market, commit on YES/NO, and expand **Test the full journey** to close the demo funding window. Funded vaults can launch and contributors can claim LP shares; underfunded vaults can refund. Demo records survive refresh in localStorage. Custom demo proposals cannot be shared across devices.
 
-**Solana devnet:** actual `@pm-amm/sdk` calls, not a simulated fallback. Network selector switches to this independent dataset. Only vaults using the `CLQ: ` name prefix and the devnet mock-USDC mint are listed. The title, funding target, deadlines, authority, commitments, launch and claim state are read from chain. Devnet topics are displayed as Community. No offchain metadata backend is used.
+**Solana devnet (default):** actual `@pm-amm/sdk` calls, not a simulated fallback. The app opens on this independent dataset; the network selector offers a separate simulation. `?mode=demo` opens the simulation directly. Only vaults using the `CLQ: ` name prefix and the devnet mock-USDC mint are listed. The title, funding target, deadlines, authority, commitments, launch and claim state are read from chain. Devnet topics are displayed as Community. No offchain metadata backend is used.
 
 Implemented operations:
 
@@ -76,3 +76,7 @@ Application source is MIT licensed. Bundled Geist font files retain their SIL Op
 ## Walkthrough media
 
 A 104-second, 1080p product walkthrough is available on the judge page. It uses actual interface captures, captions and original synthesized ambient audio, and explicitly labels simulated activity. To regenerate from the captures, run `python scripts/render-demo.py --font-root /path/to/Geist-TTF-files --work-dir /tmp/clique-video`; Pillow, NumPy and ffmpeg are required. The render is not a claim that live devnet transactions have passed.
+
+## Dependency review — 17 November 2026
+
+See [DEPENDENCY-REVIEW.md](docs/DEPENDENCY-REVIEW.md). The UUID override uses the patched CommonJS-compatible 11.x release. Nine transitive audit findings remain; this testnet release is not a mainnet security assessment.
