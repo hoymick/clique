@@ -94,3 +94,7 @@ See [DEPENDENCY-REVIEW.md](docs/DEPENDENCY-REVIEW.md). The UUID override uses th
 ## Submission packet
 
 [Ready-to-paste submission fields](docs/SUBMISSION-FIELDS.md) and [final verification status](docs/FINAL-VERIFICATION.md). The integration test requests builder funding and reuses existing mUSDC when a funded test key is supplied, avoiding unnecessary faucet claims.
+
+## Cloudflare hosting
+
+See [Cloudflare setup](docs/CLOUDFLARE.md) for Workers & Pages deployment from this repository or `npm run deploy:cloudflare` from an authenticated CLI.

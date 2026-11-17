@@ -6,3 +6,7 @@ dist/
 !.env.example
 
 *.tsbuildinfo
+
+.wrangler/
+public/submission/clique-walkthrough.mp4
+public/submission/cover.jpg
