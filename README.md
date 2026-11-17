@@ -1,6 +1,6 @@
 # Clique
 
-[Live app](https://clique-markets.tinyether2.chatgpt.site) · [Judge guide and video](https://clique-markets.tinyether2.chatgpt.site/submission/) · [Submission description](docs/SUBMISSION.md)
+[Live app](https://clique.hoymick240.workers.dev) · [Judge guide and video](https://clique.hoymick240.workers.dev/submission/) · [Submission description](docs/SUBMISSION.md)
 
 Community-funded prediction markets on Solana devnet and mainnet. Propose a YES/NO question, gather commitments toward a liquidity target, launch after funding closes, and claim LP shares or an eligible refund.
 

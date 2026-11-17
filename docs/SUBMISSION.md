@@ -2,11 +2,11 @@
 
 **One sentence:** Clique lets a community give a prediction market its first liquidity, with a funding target, a deadline, signed settlement terms, and a clear launch-or-refund journey.
 
-**Live app:** https://clique-markets.tinyether2.chatgpt.site
+**Live app:** https://clique.hoymick240.workers.dev
 
 **Public source:** https://github.com/hoymick/clique
 
-**Judge guide and walkthrough:** https://clique-markets.tinyether2.chatgpt.site/submission/
+**Judge guide and walkthrough:** https://clique.hoymick240.workers.dev/submission/
 
 ## The problem
 
