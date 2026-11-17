@@ -56,7 +56,7 @@ Confirmation uses HTTPS signature polling instead of WebSockets. No private RPC 
 ## Validation and known limits
 
 - TypeScript and production build checked.
-- Thirteen tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision and UTF-8 question length.
+- Eighteen tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision, UTF-8 question length, and transaction confirmation success, failure, expiry and timeout.
 - Browser demo exercised through creation, commitment review, launch, LP claim and refund.
 - Live devnet transaction verification **not completed**: the mUSDC faucet supplied zero SOL and the public RPC returned `410 Gone` for `requestAirdrop`, directing callers to the official SOL faucet. The inspected eligible proof-of-work pools were also unfunded. Creating a vault requires test SOL. Do not represent the demo receipts as onchain activity.
 - `scripts/devnet-smoke.cjs` uses a generated, ephemeral test key and attempts a create / commit / launch / LP-claim / refund flow. It never reads a user's wallet. Pass a funded test-only key path as the first argument; successful results write only public addresses and transaction signatures to `DEVNET-VERIFICATION.json`.
@@ -80,3 +80,7 @@ A 104-second, 1080p product walkthrough is available on the judge page. It uses 
 ## Dependency review — 17 November 2026
 
 See [DEPENDENCY-REVIEW.md](docs/DEPENDENCY-REVIEW.md). The UUID override uses the patched CommonJS-compatible 11.x release. Nine transitive audit findings remain; this testnet release is not a mainnet security assessment.
+
+## Submission packet
+
+[Ready-to-paste submission fields](docs/SUBMISSION-FIELDS.md) and [final verification status](docs/FINAL-VERIFICATION.md). The integration test requests builder funding and reuses existing mUSDC when a funded test key is supplied, avoiding unnecessary faucet claims.

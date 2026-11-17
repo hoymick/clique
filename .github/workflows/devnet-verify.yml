@@ -1,0 +1,37 @@
+name: Live devnet verification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-devnet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check application and transaction construction
+        run: |
+          npm test
+          node scripts/check-rules-tx.cjs
+          npm run build
+      - name: Run real devnet lifecycle using a disposable builder wallet
+        run: node scripts/devnet-smoke.cjs
+      - name: Print successful transaction receipts
+        run: |
+          node -e "console.log(require('node:fs').readFileSync('DEVNET-VERIFICATION.json','utf8'))"
+      - name: Preserve public verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clique-devnet-verification
+          path: |
+            DEVNET-FUNDING-STATUS.json
+            DEVNET-VERIFICATION.json
+          if-no-files-found: warn
+          retention-days: 30
