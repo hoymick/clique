@@ -66,7 +66,7 @@ Confirmation uses HTTPS signature polling instead of WebSockets. No private RPC 
 ## Validation and known limits
 
 - TypeScript and production build checked.
-- Twenty-three tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision, UTF-8 question length, confirmation outcomes, network isolation, mainnet wallet requirements, rejection handling and cluster checks.
+- Twenty-seven tests cover signed-rule serialization / validation as well as deadline / launch / refund boundaries, replay prevention, amount precision, UTF-8 question length, confirmation outcomes, network isolation, mainnet wallet requirements, rejection handling and cluster checks.
 - Browser demo exercised through creation, commitment review, launch, LP claim and refund.
 - **Live devnet lifecycle verified on 17 November 2026:** creation, YES and NO commitments, permissionless launch, LP claim and refund all confirmed successfully. [Public receipts](DEVNET-VERIFICATION.json) include postchecks for LP shares, returned funds and creator-signed settlement rules. These are developer integration transactions, not user traction.
 - `scripts/devnet-smoke.cjs` uses a generated, ephemeral test key and attempts a create / commit / launch / LP-claim / refund flow. It never reads a user's wallet. Pass a funded test-only key path as the first argument; successful results write only public addresses and transaction signatures to `DEVNET-VERIFICATION.json`.
@@ -85,7 +85,7 @@ Application source is MIT licensed. Bundled Lilita One and Nunito retain their S
 
 ## Walkthrough media
 
-A 104-second, 1080p product walkthrough is available on the judge page. It uses actual interface captures, captions and original synthesized ambient audio, and explicitly labels simulated activity. To regenerate from the captures, run `python scripts/render-demo.py --font-root /path/to/Geist-TTF-files --work-dir /tmp/clique-video`; Pillow, NumPy and ffmpeg are required. The interface walkthrough is simulated; separately verified live devnet transactions are linked from the judge guide.
+A refreshed 103-second, 1080p product walkthrough is available on the judge page. It uses actual interface captures, captions and original synthesized ambient audio, and explicitly labels simulated activity. To regenerate from the captures, run `python scripts/render-demo.py --font-root /usr/share/fonts/truetype/dejavu --work-dir /tmp/clique-video`; Pillow, NumPy and ffmpeg are required. The interface walkthrough is simulated; separately verified live devnet transactions are linked from the judge guide.
 
 ## Dependency review — 17 November 2026
 
@@ -98,3 +98,12 @@ See [DEPENDENCY-REVIEW.md](docs/DEPENDENCY-REVIEW.md). The UUID override uses th
 ## Cloudflare hosting
 
 See [Cloudflare setup](docs/CLOUDFLARE.md) for Workers & Pages deployment from this repository or `npm run deploy:cloudflare` from an authenticated CLI.
+
+## Share, save and follow
+
+- Share a question through a network-specific link. Custom demo proposals stay in their originating browser; use devnet for cross-device funding.
+- Watchlist stores up to 100 questions per network in this browser. Saving never commits funds.
+- Activity stores up to 200 actions made here, filtered by network and connected wallet. Onchain entries require confirmed transaction signatures and link to Explorer. Simulated activity is labelled.
+- Mobile navigation, accessible focus indicators, responsive dialogs and reduced-motion support are included.
+
+Clearing site data clears local watchlists and activity. Past or external wallet transactions are not imported.

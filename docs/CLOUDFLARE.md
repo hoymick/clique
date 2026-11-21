@@ -42,4 +42,4 @@ npm run check:cloudflare
 
 After deployment, verify the homepage, `/submission/`, the walkthrough video, fonts, demo mode, and that Solana devnet is selected by default. Deployment does not send a Solana transaction. Mainnet remains optional and requires Phantom approval.
 
-The build restores the walkthrough and cover from the existing Clique site with pinned SHA-256 checks. An unavailable or changed asset fails the build, avoiding a deployed broken video. Once downloaded, matching local assets are reused.
+The walkthrough, cover and interface captures are versioned in this repository. Builds no longer download media from the old hosting provider. HTML entry pages use no-store headers.

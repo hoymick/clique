@@ -61,4 +61,4 @@ Add more external wallets, resolution adapters, LP management and an opt-in laun
 
 ## Demo media
 
-The 104-second walkthrough uses captured interface snapshots with captions and an original synthesized ambient soundtrack. All demo-fund scenes are labelled. It is a product walkthrough, not a recording of completed devnet transactions. Captures and render source are included in the Site source; the public repository includes the rendering script and links to the media.
+The 103-second walkthrough uses interface captures, captions and an original synthesized ambient soundtrack. Demo-fund scenes are labelled, and the judge guide links to the separate devnet receipts. The video, captures and render script are included in the source repository.

@@ -1003,7 +1003,7 @@ export default function App() {
                   onClick={() => setFilter(v)}
                 >
                   {t}
-                  {v === "all" && <span>{markets.length}</span>}
+                  {v === "all" && <span>{markets.filter(m=>view === 'watchlist' ? watches[mode].includes(m.id) : view === 'positions' ? !!(mode === 'demo' ? m.positions?.you : positions[m.id]) : true).length}</span>}
                 </button>
               ))}
             </div>

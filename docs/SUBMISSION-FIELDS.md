@@ -19,7 +19,7 @@ Creators set a question, funding target, deadlines, evidence source and YES/NO s
 The core product is built around PREDICT’s commitment vault and launch mechanism. The commitment ratio sets the initial YES/NO price, and the pooled commitments become the market’s liquidity. A generic constant-product AMM does not provide this complete funding-to-outcome-market lifecycle on its own. Clique also records settlement terms in a creator-signed memo alongside vault initialization and verifies the original transaction before displaying those terms as verified.
 
 ## What works today
-The deployed app reads the devnet dataset, creates browser test wallets and requests faucet mUSDC. The interface includes proposals, commitment review, launch, LP claims and refunds through the SDK, plus a separate complete browser-local simulation. Twenty-three automated tests, a production build and the maximum-size transaction serialization check pass. The live devnet create/commit/launch/LP-claim/refund lifecycle is verified with public transaction receipts and account-state postchecks. See DEVNET-VERIFICATION.json.
+The deployed app reads the devnet dataset, creates browser test wallets and requests faucet mUSDC. The interface includes proposals, commitment review, launch, LP claims and refunds through the SDK, plus a separate complete browser-local simulation. Twenty-seven automated tests, a production build and the maximum-size transaction serialization check pass. The live devnet create/commit/launch/LP-claim/refund lifecycle is verified with public transaction receipts and account-state postchecks. See DEVNET-VERIFICATION.json.
 
 ## Links
 - App: https://clique.hoymick240.workers.dev
@@ -38,3 +38,6 @@ Test with real communities, add support for more external wallets, and explore r
 
 ## Fields the entrant must supply
 Enter your actual team member names and contact details in the submission form. Review any event declarations and terms yourself. This packet does not claim a submission has been made or accepted.
+
+## Product refresh
+Network-specific sharing, browser-local watchlists, confirmed activity receipts, responsive controls and an updated walkthrough are included. The source repository is private while preparation continues; give judges access before submitting if required.

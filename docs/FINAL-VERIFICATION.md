@@ -27,7 +27,7 @@ The complete Clique funding lifecycle passed on **Solana devnet**. All transacti
 
 ## Automated and product checks
 
-- 23 automated tests, including confirmation success, failure, expiry and timeout.
+- 27 automated tests, including confirmation success, failure, expiry and timeout.
 - Maximum signed question-and-rules transaction: 1,003 bytes (Solana limit: 1,232).
 - TypeScript and production build.
 - Devnet is the default. Optional mainnet uses Phantom, separate sessions, real USDC and genesis-hash verification before signing. Mainnet reads and mock-wallet checks passed; real mainnet transactions have not been verified.
@@ -37,3 +37,9 @@ The complete Clique funding lifecycle passed on **Solana devnet**. All transacti
 ## Submission status
 
 The app, verified devnet receipts, labelled walkthrough and submission text are prepared. An actual hackathon submission has not been made. Additional wallet support, trading screens, LP withdrawals and an oracle/dispute system remain outside this build’s stated scope.
+
+## Product refresh verified 18 November 2026
+
+27 tests pass. Browser checks exercised saving, sharing, proposal creation, commitment review, activity, launch, LP claim and refund in simulation. The prior mobile check at 390 × 844 found no document overflow. Network watchlists are separate. Activity is browser-local and requires confirmed signatures for onchain records. No real mainnet transaction was sent.
+
+The updated walkthrough labels simulated activity. Existing public devnet receipts remain separately linked. Source remains private: provide judges access before submitting if required. No hackathon submission was made by this update.
