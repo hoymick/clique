@@ -256,7 +256,12 @@ export default function App() {
   const [selected, setSelected] = useState<string | null>(() => routeFromUrl(location.href).vault);
   const [modal, setModal] = useState<"wallet" | "create" | "how" | "activity" | null>(null);
   const [walletAddress, setWalletAddress] = useState("");
-  const [liveBalance, setLiveBalance] = useState({ usdc: 0, sol: 0 });
+  const [balanceLoaded, setBalanceLoaded] = useState(false);
+  const [liveBalance, updateBalance] = useState({ usdc: 0, sol: 0 });
+  function setLiveBalance(value: {usdc: number; sol: number}) {
+    updateBalance(value);
+    setBalanceLoaded(true);
+  }
   const [positions, setPositions] = useState<Record<string, Position>>({});
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -437,7 +442,8 @@ export default function App() {
     chain.disconnectTestWallet();
     setWalletAddress("");
     setPositions({});
-    setLiveBalance({ sol: 0, usdc: 0 });
+    updateBalance({ sol: 0, usdc: 0 });
+        setBalanceLoaded(false);
     setLiveMarkets([]);
     setToast(null);
     setLookupError("");
@@ -481,12 +487,14 @@ export default function App() {
             ? await chain.connectExternalWallet(() => {
                 setWalletAddress("");
                 setPositions({});
-                setLiveBalance({ sol: 0, usdc: 0 });
+                updateBalance({ sol: 0, usdc: 0 });
+        setBalanceLoaded(false);
                 setError(
                   "Wallet account changed or disconnected. Reconnect to continue.",
                 );
               })
             : chain.connectTestWallet();
+        setBalanceLoaded(false);
         setWalletAddress(address);
         setModal(null);
         tell(
@@ -897,6 +905,17 @@ export default function App() {
         </div>
       </header>
       <main>
+        {mode === "devnet" && (
+          <div className="container" style={{paddingTop: 12}}>
+            <button className="button secondary" style={{height: "auto", minHeight: 44, whiteSpace: "normal"}}
+              onClick={() => setModal("wallet")}>
+              <Wallet size={16} />
+              {connected
+                ? `Devnet balance · ${balanceLoaded ? money(liveBalance.sol, 9) : "—"} SOL · ${balanceLoaded ? money(liveBalance.usdc, 6) : "—"} mUSDC`
+                : "View devnet SOL and test USDC balances"}
+            </button>
+          </div>
+        )}
         <section className={"hero container"+(view!=="discover"?" compact-hero":"")}>
           <div className="hero-copy">
             <div className="eyebrow">
@@ -1451,14 +1470,14 @@ export default function App() {
                   {mode === "demo" ? "Demo balance" : `${networkLabel} balance`}
                 </span>
                 <strong>
-                  {money(balance, 2)}{" "}
+                  {mode === "devnet" && !balanceLoaded ? "—" : money(balance, mode === "devnet" ? 6 : 2)}{" "}
                   <small>{mode === "demo" ? "demo USDC" : tokenLabel}</small>
                 </strong>
                 {mode !== "demo" && (
                   <>
                     <code>{short(walletAddress)}</code>
                     <span className="sol-balance">
-                      {money(liveBalance.sol, 5)} SOL for{" "}
+                      {mode === "devnet" && !balanceLoaded ? "—" : money(liveBalance.sol, 9)} SOL for{" "}
                       {mode === "mainnet" ? "mainnet" : "test"} transaction fees
                     </span>
                     {mode === "devnet" && liveBalance.sol < 0.005 && (
@@ -1861,7 +1880,8 @@ export default function App() {
                         const address = await chain.replaceInvalidTestWallet();
                         setWalletAddress(address);
                         setPositions({});
-                        setLiveBalance({sol: 0, usdc: 0});
+                        updateBalance({ sol: 0, usdc: 0 });
+        setBalanceLoaded(false);
                         setError("New test wallet ready. Fund the address below with devnet SOL, then retry.");
                       } catch (e) {
                         setError(chain.readableError(e));
@@ -1876,11 +1896,13 @@ export default function App() {
                       const address = await chain.connectExternalWallet(() => {
                         setWalletAddress("");
                         setPositions({});
-                        setLiveBalance({sol: 0, usdc: 0});
+                        updateBalance({ sol: 0, usdc: 0 });
+        setBalanceLoaded(false);
                       });
                       setWalletAddress(address);
                       setPositions({});
-                      setLiveBalance({sol: 0, usdc: 0});
+                      updateBalance({ sol: 0, usdc: 0 });
+        setBalanceLoaded(false);
                       setError("");
                       setLiveBalance(await chain.balances());
                     } catch (e) {
