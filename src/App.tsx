@@ -1844,6 +1844,54 @@ export default function App() {
                 {error}
               </div>
             )}
+            {mode === "devnet" && connected && error && (
+              <div className="share-box">
+                <label>Devnet wallet address
+                  <input readOnly value={walletAddress} onFocus={event => event.currentTarget.select()} />
+                </label>
+                <div className="inline-actions">
+                  <a href={chain.explorer(walletAddress)} target="_blank" rel="noreferrer">Inspect wallet</a>
+                  {!/cannot pay|may not be used to pay/i.test(error) && (
+                    <a href="https://faucet.solana.com/" target="_blank" rel="noreferrer">Get devnet SOL</a>
+                  )}
+                  {/cannot pay|may not be used to pay/i.test(error) && (
+                    <button type="button" disabled={!!busy} onClick={async () => {
+                      setBusy("Creating test wallet");
+                      try {
+                        const address = await chain.replaceInvalidTestWallet();
+                        setWalletAddress(address);
+                        setPositions({});
+                        setLiveBalance({sol: 0, usdc: 0});
+                        setError("New test wallet ready. Fund the address below with devnet SOL, then retry.");
+                      } catch (e) {
+                        setError(chain.readableError(e));
+                      } finally {
+                        setBusy("");
+                      }
+                    }}>Create replacement test wallet</button>
+                  )}
+                  <button type="button" disabled={!!busy} onClick={async () => {
+                    setBusy("Connecting Phantom");
+                    try {
+                      const address = await chain.connectExternalWallet(() => {
+                        setWalletAddress("");
+                        setPositions({});
+                        setLiveBalance({sol: 0, usdc: 0});
+                      });
+                      setWalletAddress(address);
+                      setPositions({});
+                      setLiveBalance({sol: 0, usdc: 0});
+                      setError("");
+                      setLiveBalance(await chain.balances());
+                    } catch (e) {
+                      setError(chain.readableError(e));
+                    } finally {
+                      setBusy("");
+                    }
+                  }}>Use Phantom on devnet</button>
+                </div>
+              </div>
+            )}
             <button
               className="button primary full"
               type="submit"

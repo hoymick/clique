@@ -6,6 +6,8 @@ import {
   VersionedTransaction,
   TransactionInstruction,
   ComputeBudgetProgram,
+  SystemProgram,
+  NONCE_ACCOUNT_LENGTH,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@anchor-lang/core";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
@@ -101,6 +103,22 @@ function createChain(network: Network) {
       publicKey: kp.publicKey,
     };
     return kp.publicKey.toBase58();
+  }
+  async function replaceInvalidTestWallet() {
+    const current = active();
+    if (network !== "devnet") throw new Error("Recovery requires devnet.");
+    const info = await connection.getAccountInfo(current.publicKey, "confirmed");
+    if (!info || info.owner.equals(SystemProgram.programId) && (info.data.length === 0 ||
+        info.data.length === NONCE_ACCOUNT_LENGTH && info.data.readUInt32LE(4) === 1))
+      throw new Error("This wallet can receive devnet SOL. Fund it and retry.");
+    if (current !== session) throw new Error("Reconnect your test wallet and retry.");
+    const key = "clique-devnet-wallet-v1";
+    const saved = localStorage.getItem(key);
+    if (!saved || !Keypair.fromSecretKey(Uint8Array.from(JSON.parse(saved))).publicKey.equals(current.publicKey))
+      throw new Error("Reconnect your browser test wallet to create a replacement.");
+    localStorage.setItem(key + "-archived-" + current.publicKey.toBase58(), saved);
+    localStorage.setItem(key, JSON.stringify([...Keypair.generate().secretKey]));
+    return connectTestWallet();
   }
   async function connectExternalWallet(onChange: () => void = () => {}) {
     const provider = (
@@ -325,6 +343,17 @@ function createChain(network: Network) {
   }
   async function createProposal(p: Proposal) {
     const { client, publicKey } = active();
+    if (network === "devnet") {
+      const payer = await connection.getAccountInfo(publicKey, "confirmed");
+      if (!payer || payer.lamports === 0)
+        throw new Error("This wallet needs devnet SOL for fees and vault creation. Fund the wallet below, then retry.");
+      let eligible = payer.owner.equals(SystemProgram.programId) && payer.data.length === 0;
+      if (payer.owner.equals(SystemProgram.programId) && payer.data.length === NONCE_ACCOUNT_LENGTH) {
+        eligible = payer.data.readUInt32LE(4) === 1;
+      }
+      if (!eligible)
+        throw new Error("This address cannot pay Solana fees. Switch to a devnet Phantom wallet below and retry.");
+    }
     const id = Keypair.generate().publicKey.toBuffer().readUIntLE(0, 6);
     const vault = client.vaultPda(id);
     const ix = await client.ix.initializeVault({
@@ -448,6 +477,7 @@ function createChain(network: Network) {
   return {
     network,
     collateralMint: MINT.toBase58(),
+    replaceInvalidTestWallet,
     connectExternalWallet,
     connectTestWallet,
     disconnectTestWallet,
