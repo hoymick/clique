@@ -36,6 +36,8 @@ Implemented operations:
 
 Uses an explicitly devnet-only browser test wallet. Keys stay on the visitor's browser and must never receive mainnet assets. Clearing site data removes access to that wallet. Mainnet uses Phantom, with private keys kept in the extension and individual wallet approval. Browser test keys and faucets are rejected on mainnet.
 
+[Open the step-by-step test wallet funding guide](https://clique.hoymick240.workers.dev/?mode=devnet&guide=funding). It walks testers through creating a wallet, requesting devnet SOL from the official faucet, claiming mUSDC in Clique and checking both balances.
+
 ## Deposit or withdraw SOL and USDC
 
 1. Select **Solana devnet** and create or open your test wallet. For mainnet, select **Solana mainnet** and connect Phantom.

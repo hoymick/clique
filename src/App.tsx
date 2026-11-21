@@ -255,7 +255,10 @@ export default function App() {
   const [lookupError, setLookupError] = useState("");
   const [sort, setSort] = useState("trending");
   const [selected, setSelected] = useState<string | null>(() => routeFromUrl(location.href).vault);
-  const [modal, setModal] = useState<"wallet" | "create" | "how" | "activity" | null>(null);
+  const [modal, setModal] = useState<"wallet" | "create" | "how" | "activity" | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("mode") === "devnet" && params.get("guide") === "funding" ? "wallet" : null;
+  });
   const [walletAddress, setWalletAddress] = useState("");
   const [balanceLoaded, setBalanceLoaded] = useState(false);
   const [liveBalance, updateBalance] = useState({ usdc: 0, sol: 0 });
@@ -497,7 +500,7 @@ export default function App() {
             : chain.connectTestWallet();
         setBalanceLoaded(false);
         setWalletAddress(address);
-        setModal(null);
+        setModal(mode === "devnet" ? "wallet" : null);
         tell(
           mode === "mainnet"
             ? "Phantom connected on mainnet. Transactions use real USDC and require wallet approval."
@@ -1481,22 +1484,6 @@ export default function App() {
                       {mode === "devnet" && !balanceLoaded ? "—" : money(liveBalance.sol, 9)} SOL for{" "}
                       {mode === "mainnet" ? "mainnet" : "test"} transaction fees
                     </span>
-                    {mode === "devnet" && liveBalance.sol < 0.005 && (
-                      <div className="sol-faucet-note">
-                        Copy your wallet address below, request free SOL on the
-                        official faucet with Devnet selected, then refresh your
-                        balance. Test mUSDC and devnet SOL have no monetary
-                        value.
-                        <a
-                          href="https://faucet.solana.com/"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Get devnet SOL at the official faucet{" "}
-                          <ExternalLink size={12} />
-                        </a>
-                      </div>
-                    )}
                     <div className="inline-actions">
                       <button
                         disabled={!!busy}
@@ -1594,6 +1581,17 @@ export default function App() {
               <ArrowRight size={16} />
             </button>
           )}
+          {mode === "devnet" && <section aria-label="Test wallet funding guide" className="share-box">
+            <h3>How to get free test SOL and USDC</h3>
+            <ol>
+              <li><strong>Create your wallet.</strong> Select <b>Create / connect test wallet</b> if you haven’t already. Stay in this browser so you can return to the same wallet.</li>
+              <li><strong>Copy your receiving address.</strong> Select <b>Copy address</b> in the wallet balance panel above. Each tester has their own address.</li>
+              <li><strong>Request devnet SOL for fees.</strong> Open the <a href="https://faucet.solana.com/" target="_blank" rel="noreferrer">official Solana faucet ↗</a>. Choose <b>Devnet</b>, paste your copied address into <b>Wallet Address</b>, choose an available amount and select <b>Confirm Airdrop</b>. If the faucet shows a request limit, wait for its reset.</li>
+              <li><strong>Check your SOL.</strong> Return to this Clique tab and select <b>Refresh balance</b>. Wait for a positive SOL balance. If it still shows zero, check that the faucet used Devnet and the same address, then refresh again after confirmation.</li>
+              <li><strong>Request test USDC for campaigns.</strong> In this wallet, select <b>Get test USDC</b> once. Clique sends the request for your connected address. Wait for confirmation, then select <b>Refresh balance</b>. Your test USDC appears as <b>mUSDC</b>. If the request fails, check your balance before retrying.</li>
+              <li><strong>Try a campaign.</strong> Once you see both balances, close the wallet, open a funding campaign and choose YES or NO. Enter an amount within your mUSDC balance, then select <b>Review commitment</b> and <b>Confirm commitment</b>.</li>
+            </ol>
+          </section>}
           {error && (
             <div className="form-error" role="alert">
               {error}
