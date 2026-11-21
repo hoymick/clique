@@ -36,6 +36,20 @@ Implemented operations:
 
 Uses an explicitly devnet-only browser test wallet. Keys stay on the visitor's browser and must never receive mainnet assets. Clearing site data removes access to that wallet. Mainnet uses Phantom, with private keys kept in the extension and individual wallet approval. Browser test keys and faucets are rejected on mainnet.
 
+## Deposit or withdraw SOL and USDC
+
+1. Select **Solana devnet** and create or open your test wallet. For mainnet, select **Solana mainnet** and connect Phantom.
+2. Open the connected wallet to see both balances. Choose **Deposit** and copy the receiving address. Each participant uses their own wallet address. On devnet, use **Get devnet SOL** to fund that address for fees and use the wallet’s test-token faucet for mUSDC.
+3. Choose **Withdraw**, select the asset, enter the recipient wallet and amount, and choose **Review withdrawal**. Check the network and full address before confirming. Mainnet also requires Phantom approval. After confirmation, open the Explorer receipt.
+
+These controls transfer assets held in the wallet. Funds committed to a vault follow the LP claim or refund rules below.
+
+## How are the odds and the outcome decided?
+
+During funding, the split between YES and NO commitments sets the opening price. For example, 70 mUSDC on YES and 30 on NO implies an opening YES price of about 70%. That figure reflects what backers funded. It cannot verify an event.
+
+At creation, the creator signs the evidence source, YES condition and NO or missing-data rule. Participants can inspect these under **Settlement rules**. The creator is responsible for checking the source at the deadline and resolving the market. Clique currently has no automatic evidence check, dispute process or winner notification. After launch, backers can use **Claim LP shares** to receive their share of the liquidity pool. Picking the eventual winning side during funding does not itself earn a prediction payout.
+
 ## Mainnet
 
 Select **Solana mainnet · real funds** in the network menu, then **Connect Phantom**. Mainnet uses real Circle USDC and SOL. Devnet remains the default; `?mode=mainnet` opens mainnet explicitly. Each network has an independent reader, signing session and signed-rules cache. Switching clears displayed wallets, balances, positions, markets and receipts; share links include their network.
