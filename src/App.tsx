@@ -29,6 +29,7 @@ import {
   Download,
   Bookmark,
   Share2,
+  MessageCircle,
   History,
 } from "lucide-react";
 import { readWatch, toggleWatch, watchKey, readActivity, appendActivity, routeFromUrl, marketLink } from "./journal.mjs";
@@ -286,6 +287,9 @@ export default function App() {
   const connected = mode === "demo" ? demo.connected : !!walletAddress;
   const balance = mode === "demo" ? demo.balance : liveBalance.usdc;
   const market = markets.find((m) => m.id === selected);
+  const shareUrl = market && !market.id.startsWith("demo-")
+    ? marketLink(location.origin, mode, market.id)
+    : null;
   const activePosition = market
     ? mode === "demo"
       ? market.positions?.you
@@ -313,6 +317,14 @@ export default function App() {
     catch {tell('Your browser could not save this watchlist.');return;}
     setWatches(v=>({...v,[mode]:next}));
     tell(next.includes(id)?'Question saved to your watchlist.':'Question removed from your watchlist.');
+  }
+  async function copyMarketLink(url: string, successMessage: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      tell(successMessage);
+    } catch {
+      tell("Select the market link and copy it manually.");
+    }
   }
   function record(action:string, id:string, title:string, signature?:string, amount?:number, choice?:string) {
     const item = {mode,wallet:mode==='demo'?'demo':walletAddress,marketId:id,title,action,signature,amount,side:choice,at:Date.now()};
@@ -2023,12 +2035,55 @@ export default function App() {
               </div>
               <div className="detail-actions">
                 <button className="button secondary" onClick={()=>watch(market.id)} aria-pressed={watches[mode].includes(market.id)}><Bookmark size={16}/>{watches[mode].includes(market.id)?'Saved question':'Save question'}</button>
-                <button className="button secondary" onClick={()=>setShareOpen(v=>!v)}><Share2 size={16}/> Share question</button>
+                <button
+                  className="button secondary"
+                  aria-expanded={shareOpen}
+                  onClick={() => setShareOpen((open) => !open)}
+                >
+                  <Share2 size={16} /> Share question
+                </button>
               </div>
-              {shareOpen && <div className="share-box">
-                <strong>Bring your clique.</strong>
-                {market.id.startsWith('demo-') ? <p>This custom demo lives only in this browser. Propose on devnet to share a question others can fund.</p> : <><p>This link opens the question on {mode === 'demo'?'Demo mode':networkLabel}. Sharing does not connect a wallet or commit funds.</p><label>Market link<input aria-label="Market share link" readOnly value={marketLink(location.origin,mode,market.id)} onFocus={e=>e.currentTarget.select()}/></label><button className="button primary" onClick={async()=>{try {await navigator.clipboard.writeText(marketLink(location.origin,mode,market.id));tell('Market link copied.');}catch {tell('Select the market link and copy it manually.');}}}><Copy size={14}/> Copy link</button></>}
-              </div>}
+              {shareOpen && (
+                <div className="share-box">
+                  <strong>Share this question</strong>
+                  {shareUrl ? (
+                    <>
+                      <p>
+                        This link opens the question in {mode === "demo" ? "demo mode" : networkLabel}.
+                        To share on Discord, paste the link into a channel or DM.
+                      </p>
+                      <label>
+                        Market link
+                        <input
+                          aria-label="Market share link"
+                          readOnly
+                          value={shareUrl}
+                          onFocus={(event) => event.currentTarget.select()}
+                        />
+                      </label>
+                      <div className="share-actions">
+                        <button
+                          className="button primary"
+                          onClick={() => void copyMarketLink(shareUrl, "Market link copied.")}
+                        >
+                          <Copy size={14} /> Copy link
+                        </button>
+                        <a
+                          className="button secondary"
+                          href="https://discord.com/channels/@me"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => void copyMarketLink(shareUrl, "Market link copied. Paste it in Discord.")}
+                        >
+                          <MessageCircle size={16} /> Share on Discord <ExternalLink size={13} />
+                        </a>
+                      </div>
+                    </>
+                  ) : (
+                    <p>This custom demo lives only in this browser. Propose on devnet to share a question others can fund.</p>
+                  )}
+                </div>
+              )}
             </div>
             <aside className="commit-panel">
               {receipt ? (

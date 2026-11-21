@@ -102,6 +102,7 @@ See [Cloudflare setup](docs/CLOUDFLARE.md) for Workers & Pages deployment from t
 ## Share, save and follow
 
 - Share a question through a network-specific link. Custom demo proposals stay in their originating browser; use devnet for cross-device funding.
+- Choose **Share on Discord** to copy the market link and open Discord. Paste the link into a channel or direct message.
 - Watchlist stores up to 100 questions per network in this browser. Saving never commits funds.
 - Activity stores up to 200 actions made here, filtered by network and connected wallet. Onchain entries require confirmed transaction signatures and link to Explorer. Simulated activity is labelled.
 - Mobile navigation, accessible focus indicators, responsive dialogs and reduced-motion support are included.
