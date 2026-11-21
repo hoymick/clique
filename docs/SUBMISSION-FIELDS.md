@@ -40,4 +40,4 @@ Test with real communities, add support for more external wallets, and explore r
 Enter your actual team member names and contact details in the submission form. Review any event declarations and terms yourself. This packet does not claim a submission has been made or accepted.
 
 ## Product refresh
-Network-specific sharing, browser-local watchlists, confirmed activity receipts, responsive controls and an updated walkthrough are included. Users can copy a market link and open Discord to share it in a channel or direct message. The source repository is private while preparation continues; give judges access before submitting if required.
+Network-specific sharing, browser-local watchlists, confirmed activity receipts, responsive controls and an updated walkthrough are included. Users can copy a market link and open Discord to share it in a channel or direct message. The source repository is public.

@@ -6,7 +6,7 @@ Clique deploys as a separate Cloudflare Worker named `clique`, serving Vite's `d
 
 - App: https://clique.hoymick240.workers.dev
 - Judge guide: https://clique.hoymick240.workers.dev/submission/
-- GitHub: `hoymick/clique` is private. Production deploys from `main`; preview builds and preview URLs are disabled.
+- GitHub: `hoymick/clique` is public. Production deploys from `main`; preview builds and preview URLs are disabled.
 - Initial Cloudflare build and deployment succeeded on 17 November 2026. Homepage, devnet reads, bundled fonts, judge guide and walkthrough were checked.
 
 ## Workers & Pages Git connection

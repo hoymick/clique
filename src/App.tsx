@@ -1,3 +1,4 @@
+import { WalletTransfers } from "./WalletTransfers";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
@@ -1539,6 +1540,9 @@ export default function App() {
                   </>
                 )}
               </div>
+              {mode !== "demo" && <WalletTransfers key={mode + walletAddress} network={mode}
+                address={walletAddress} busy={!!busy} setBusy={setBusy}
+                refresh={async () => setLiveBalance(await chain.balances())} />}
               {mode !== "mainnet" && (
                 <button
                   className="button primary full"

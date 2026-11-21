@@ -10,7 +10,7 @@ import {
   NONCE_ACCOUNT_LENGTH,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@anchor-lang/core";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { installHttpConfirmation } from "./confirmation.mjs";
 import { PmAmmClient } from "@pm-amm/sdk";
 import { Buffer } from "buffer";
@@ -216,6 +216,37 @@ function createChain(network: Network) {
         }),
     ]);
     return { sol: sol / 1e9, usdc };
+  }
+  function reviewWithdrawal(asset: "SOL" | "USDC", amount: string, address: string) {
+    const decimals = asset === "SOL" ? 9 : 6;
+    const parts = amount.trim().split(".");
+    if (!/^\d{1,20}(?:\.\d+)?$/.test(amount.trim()) || (parts[1]?.length || 0) > decimals)
+      throw new Error(`Enter a positive amount with at most ${decimals} decimal places.`);
+    const units = BigInt(parts[0] + (parts[1] || "").padEnd(decimals, "0"));
+    if (units <= 0n || units > 18446744073709551615n) throw new Error("Enter a valid withdrawal amount.");
+    const sender = active().publicKey;
+    let recipient: PublicKey;
+    try { recipient = new PublicKey(address.trim()); }
+    catch { throw new Error("Enter a valid Solana wallet address."); }
+    if (!PublicKey.isOnCurve(recipient.toBytes()) || recipient.equals(sender))
+      throw new Error("Enter another wallet’s public address.");
+    return { asset, units, recipient, sender };
+  }
+  async function withdraw(asset: "SOL" | "USDC", amount: string, address: string, expectedSender: string) {
+    const current = active();
+    const {units, recipient, sender} = reviewWithdrawal(asset, amount, address);
+    if (sender.toBase58() !== expectedSender) throw new Error("Wallet changed. Review again.");
+    const account = await connection.getAccountInfo(recipient, "confirmed");
+    if (account && (!account.owner.equals(SystemProgram.programId) || account.data.length || account.executable))
+      throw new Error("Use the recipient’s wallet address, not a token or program account.");
+    if (current !== session) throw new Error("Wallet changed. Review again.");
+    if (asset === "SOL")
+      return current.client.sendIxs([SystemProgram.transfer({fromPubkey:sender,toPubkey:recipient,lamports:units})]);
+    const destination = getAssociatedTokenAddressSync(MINT, recipient);
+    return current.client.sendIxs([
+      createAssociatedTokenAccountIdempotentInstruction(sender, destination, recipient, MINT),
+      createTransferCheckedInstruction(getAssociatedTokenAddressSync(MINT,sender), MINT, destination, sender, units, 6),
+    ]);
   }
   async function faucet() {
     if (network !== "devnet")
@@ -482,6 +513,8 @@ function createChain(network: Network) {
     connectTestWallet,
     disconnectTestWallet,
     balances,
+    reviewWithdrawal,
+    withdraw,
     faucet,
     fetchVaults,
     fetchPosition,
